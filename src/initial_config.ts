@@ -1,0 +1,73 @@
+export const auth = {};
+export const custom_jql = {
+  reported: 'reporter=currentUser() and status not in (\'Done\')'
+};
+export const user_alias ={
+  'NICKNAME': 'USERNAME_OF_USER'
+};
+export const custom_alasql = {
+  'project': 'select fields->project->name , count(1)  AS counter from ? group by fields->project->name',
+  'priority': 'select fields->priority->name , count(1)  AS counter from ? group by fields->priority->name',
+  'status': 'select fields->project->name,fields->status->name , count(1)  AS counter from ? group by fields->project->name,fields->status->name'
+};
+export const default_create = {
+  '__always_ask': {
+    'fields': {
+      'description': {},
+      'priority': {}
+    }
+  },
+  'YOUR_ALIAS': {
+    'project': 'YOUR_PROJECT',
+    'issueType': 3,
+    'default': {
+      'components': [{
+        'id': '15226'
+      }],
+      'customfield_12901': 'infrastructure',
+      'customfield_12902': {
+        'id': '11237'
+      }
+    }
+  }
+};
+export const edit_meta = {
+  '__default': {
+    'wish': {
+      'fields': {
+        'priority': {
+          'id': '9'
+        }
+      }
+    }
+  },
+  'sprint': {
+    'key': 'customfield_10007'
+  },
+  'label': {
+    'key': 'labels',
+    'default': {
+      'test1': 't1,t2'
+    }
+  }
+};
+export const options = {
+  jira_stop: {
+    status: 'To Do'
+  },
+  jira_start: {
+    status: 'In Progress'
+  },
+  jira_review: {
+    status: 'In Review'
+  },
+  'jira_invalid': {
+    'status': 'Invalid'
+  },
+  jira_done: {
+    status: 'Done',
+    check_resolution: false
+  },
+  available_issues_statuses: ['Open', 'In Progress', 'Reopened', 'To Do', 'In Review'],
+  use_self_signed_certificate: false,
+};

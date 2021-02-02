@@ -3,11 +3,20 @@ module.exports = {
     es6: true,
     node: true,
   },
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    // Allows for the parsing of modern ECMAScript features
+    ecmaVersion: 2020,
+    // Allows for the use of imports
+    sourceType: 'module',
+  },
+  extends: ['plugin:@typescript-eslint/recommended',
+  ],
   globals: {},
   rules: {
     semi: ['error', 'always'],
     'no-cond-assign': ['error', 'except-parens'],
-    camelcase: 'error',
+    camelcase: 'off',
     curly: 'off',
     eqeqeq: 'error',
     'no-eq-null': 'error',
@@ -37,7 +46,7 @@ module.exports = {
     quotes: ['error', 'single'],
     strict: 'off',
     'no-undef': 'error',
-    'no-unused-vars': 'error',
+    'no-unused-vars': 'warn',
     'eol-last': 'error',
     'key-spacing': [
       'error',
@@ -76,4 +85,4 @@ module.exports = {
     }
   ]
 
-}
+};
