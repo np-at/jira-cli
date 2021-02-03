@@ -1,7 +1,7 @@
 import path from 'path';
-
+import os from 'os';
 export default (() => {
-  const home_directory = process.cwd();
+  const home_directory = os.homedir();
   const config = {
     directory_name: '.jira-cli',
     config_file_name: 'config.json',

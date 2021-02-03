@@ -6,14 +6,15 @@
     "sourceMap": false,
     "declaration": false,
     "lib": ["es2020"],
-    "noEmit": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "outDir": "lib"
   },
   "exclude": [
     "node_modules",
     "lib",
     "bin",
-    "test"
+    "test",
+    "libx"
   ],
   "compileOnSave": true
 }

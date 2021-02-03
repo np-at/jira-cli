@@ -2,7 +2,7 @@ export const auth = {};
 export const custom_jql = {
   reported: 'reporter=currentUser() and status not in (\'Done\')'
 };
-export const user_alias ={
+export const user_alias = {
   'NICKNAME': 'USERNAME_OF_USER'
 };
 export const custom_alasql = {
@@ -69,5 +69,5 @@ export const options = {
     check_resolution: false
   },
   available_issues_statuses: ['Open', 'In Progress', 'Reopened', 'To Do', 'In Review'],
-  use_self_signed_certificate: false,
+  use_self_signed_certificate: false
 };

@@ -1,15 +1,15 @@
 /*global requirejs,console,define,fs*/
 
-import readline from "readline";
+import readline from 'readline';
 
-import sslRequest from "../../lib/ssl_request";
+import sslRequest from './ssl_request';
 
-import config from "./config";
+import config from './config';
 
-export default function () {
+export default (() => {
 
-  var getUserCompletions = function getUserCompletions(line, word, options, cb) {
-    var userOptions = options && options.user ? options.user : {},
+  const getUserCompletions = function getUserCompletions(line, word, options, cb) {
+    const userOptions = options && options.user ? options.user : {},
       enabled = userOptions.enabled !== undefined ? userOptions.enabled : false,
       forMention = userOptions ? userOptions.forMention : false,
       isUserComplete = word && forMention ? word.indexOf('[~') === 0 : true,
@@ -19,24 +19,24 @@ export default function () {
       return cb([]);
     }
 
-    result = !queryWord ? null : sslRequest.get(config.auth.url + 'rest/api/2/user/search?username=' + queryWord).end((err, res) => {
+    const result = !queryWord ? null : sslRequest.get(config.auth.url + 'rest/api/2/user/search?username=' + queryWord).end((err, res) => {
       if (!res.ok) {
         return console.log(res.body.errorMessages.join('\n'));
       }
 
-      var hits = res.body.filter(function (user) {
-        return user.name.indexOf(queryWord) == 0;
+      let hits = res.body.filter(function(user) {
+        return user.name.indexOf(queryWord) === 0;
       });
-      hits = hits.map(function (user) {
+      hits = hits.map(function(user) {
         return user.name;
       });
-      var exact = hits.filter(function (user) {
-        return user == queryWord;
+      const exact = hits.filter(function(user) {
+        return user === queryWord;
       });
       hits = exact.length === 1 ? exact : hits;
 
       if (forMention) {
-        hits = hits.map(function (user) {
+        hits = hits.map(function(user) {
           return '[~' + user + ']';
         });
       }
@@ -45,15 +45,15 @@ export default function () {
     });
   };
 
-  var getCompletions = function getCompletions(line, word, options, cb) {
+  const getCompletions = function getCompletions(line, word, options, cb) {
     getUserCompletions(line, word, options, function userCompletionHits(userHits, line) {
       cb(null, [userHits, line]);
     });
   };
 
-  var getCompleter = function getCompleter(options) {
-    var completer = function completer(line, cb) {
-      var words = line ? line.split(/\s+/) : [],
+  const getCompleter = function getCompleter(options) {
+    const completer = function completer(line, cb) {
+      const words = line ? line.split(/\s+/) : [],
         word = words.length > 0 ? words[words.length - 1] : '';
 
       if (!word) {
@@ -66,16 +66,16 @@ export default function () {
     return completer;
   };
 
-  return function (question, cb, options) {
-    var options = options || options,
-      rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        completer: getCompleter(options)
-      });
-    rl.question(question, function (answer) {
+  return function(question, cb, options) {
+    options = options || options;
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      completer: getCompleter(options)
+    });
+    rl.question(question, function(answer) {
       rl.close();
       cb(answer);
     });
   };
-}();
+})();

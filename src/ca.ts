@@ -2,6 +2,6 @@ import settings from './settings';
 
 import {readFileSync} from 'fs';
 
-export const ca = (): Buffer => {
+export default (): Buffer => {
   return readFileSync(settings.getCertificateFilePath());
 };
