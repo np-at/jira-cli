@@ -1,8 +1,8 @@
-import config from './config';
+import config from "./config";
 
-import request from 'superagent';
+import request from "superagent";
 
-import ca from './ca';
+import ca from "./ca";
 
 export default (() => {
   const _buildRequest = function (verb) {

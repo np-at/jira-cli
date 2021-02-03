@@ -1,10 +1,9 @@
 /* eslint-disable max-depth */
 /*global*/
-import utils from '../utils';
-
-import program from 'commander';
-import JiraClient from 'jira-connector';
+import utils from "../utils";
+import JiraClient from "jira-connector";
 import inquirer from "inquirer";
+
 const prompt = inquirer.createPromptModule();
 const Create = (jira: JiraClient) => {
   function printError (messages) {

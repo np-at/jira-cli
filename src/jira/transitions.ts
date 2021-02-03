@@ -1,12 +1,12 @@
 /* eslint-disable brace-style,max-depth */
 /*global requirejs,console,define,fs*/
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
-import Table from 'cli-table';
+import Table from "cli-table";
 
-import config from '../config';
+import config from "../config";
 
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
 const prompt = inquirer.createPromptModule();
 export default (() => {

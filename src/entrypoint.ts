@@ -7,29 +7,30 @@
 // Meta-data      : http://localhost:8080/rest/api/2/issue/JRA-13/editmeta
 //
 
-import {Command} from 'commander';
-const program = new Command();
-import config from './config';
-import auth from './auth';
-import ls from './jira/ls';
-import describe from './jira/describe';
-import assign from './jira/assign';
-import fix from './jira/fix';
-import release from './jira/release';
-import send from './jira/send';
-import comment from './jira/comment';
-import sprint from './jira/sprint';
-import transitions from './jira/transitions';
-import worklog from './jira/worklog';
-import link from './jira/link';
-import watch from './jira/watch';
-import addToSprint from './jira/addToSprint';
-import newCreate from './jira/new';
-import edit from './jira/edit';
+import { Command } from "commander";
+import config from "./config";
+import auth from "./auth";
+import ls from "./jira/ls";
+import describe from "./jira/describe";
+import assign from "./jira/assign";
+import fix from "./jira/fix";
+import release from "./jira/release";
+import send from "./jira/send";
+import comment from "./jira/comment";
+import sprint from "./jira/sprint";
+import transitions from "./jira/transitions";
+import worklog from "./jira/worklog";
+import link from "./jira/link";
+import watch from "./jira/watch";
+import addToSprint from "./jira/addToSprint";
+import newCreate from "./jira/new";
+import edit from "./jira/edit";
 // @ts-ignore
-import pkg from '../package.json';
-import create from './jira/create';
-import JiraClient from 'jira-connector';
+import pkg from "../package.json";
+import create from "./jira/create";
+import JiraClient from "jira-connector";
+
+const program = new Command();
 
 // eslint-disable-next-line max-statements
 export default (()=>{

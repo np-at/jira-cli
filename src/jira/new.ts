@@ -1,15 +1,15 @@
 /* eslint-disable max-depth */
 /*global, console*/
 
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
-import config from '../config';
+import config from "../config";
 
-import async from 'async';
+import async from "async";
 
-import utils from '../utils';
+import utils from "../utils";
 
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
 const prompt = inquirer.createPromptModule();
 

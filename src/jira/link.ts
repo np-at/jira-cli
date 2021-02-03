@@ -1,10 +1,9 @@
 /* eslint-disable max-depth */
-import program from 'commander';
+import sslRequest from "../ssl_request";
 
-import sslRequest from '../ssl_request';
-
-import config from '../config';
+import config from "../config";
 import inquirer from "inquirer";
+
 const prompt = inquirer.createPromptModule();
 export default (() => {
   function ask(question, callback, yesno, values, options) {

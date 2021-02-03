@@ -5,15 +5,15 @@
  * ./bin/jira.js jql -j 1  "reporter=currentUser() and status='done' and createdDate>'2017-01-01' and createdDate<'2018-04-01'"
  * ./bin/jira.js jql -j 1  "assignee=currentUser() and createdDate>'2017-01-01' and createdDate<'2018-04-01'"
  * */
-import Table from 'cli-table';
+import Table from "cli-table";
 
-import config from '../config';
+import config from "../config";
 
-import async from 'async';
+import async from "async";
 
-import alasql from 'alasql';
+import alasql from "alasql";
 
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
 export default (() => {
   const ls = {

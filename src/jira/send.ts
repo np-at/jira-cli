@@ -1,15 +1,15 @@
 /*global requirejs,console,define,fs*/
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
-import config from '../config';
+import config from "../config";
 
-import cheerio from 'cheerio';
+import cheerio from "cheerio";
 
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
-import fs from 'fs';
+import fs from "fs";
 
-import _ from 'underscore';
+import _ from "underscore";
 
 export default (() => {
   const report = {

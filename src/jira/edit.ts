@@ -1,16 +1,14 @@
 /* eslint-disable max-depth */
 /*global requirejs,console,define,fs*/
-import program from 'commander';
 
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
-import config from '../config';
+import config from "../config";
 
-import {ask} from '../common';
+import { ask } from "../common";
 
-import async from 'async';
+import inquirer from "inquirer";
 
-import inquirer from 'inquirer';
 const prompt = inquirer.createPromptModule();
 export default (() => {
   const editMeta = {

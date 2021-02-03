@@ -1,8 +1,8 @@
 /* eslint-disable max-depth */
-import program from 'commander';
-import {options as defaultOptions} from './initial_config';
+import { options as defaultOptions } from "./initial_config";
 
 import inquirer from "inquirer";
+
 const prompt = inquirer.createPromptModule();
 export function ask(question: string, callback, yesno: boolean | undefined = undefined, values: Record<string, unknown>[] = [], answer: never | undefined  = undefined): void {
 

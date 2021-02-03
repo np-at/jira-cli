@@ -1,6 +1,6 @@
-import settings from './settings';
+import settings from "./settings";
 
-import {readFileSync} from 'fs';
+import { readFileSync } from "fs";
 
 export default (): Buffer => {
   return readFileSync(settings.getCertificateFilePath());

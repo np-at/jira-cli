@@ -1,12 +1,12 @@
-import sslRequest from '../ssl_request';
+import sslRequest from "../ssl_request";
 
-import Table from 'cli-table';
+import Table from "cli-table";
 
-import openurl from 'openurl';
+import openurl from "openurl";
 
-import url from 'url';
+import url from "url";
 
-import config from '../config';
+import config from "../config";
 
 export default (() => {
   const describe = {

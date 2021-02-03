@@ -1,10 +1,10 @@
 /*global requirejs,console,define,fs*/
 
-import readline from 'readline';
+import readline from "readline";
 
-import sslRequest from './ssl_request';
+import sslRequest from "./ssl_request";
 
-import config from './config';
+import config from "./config";
 
 export default (() => {
 

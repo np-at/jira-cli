@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from "fs";
 
-import _url from 'url';
+import _url from "url";
 
 export default (() => {
   function _loadFromFile(path) {

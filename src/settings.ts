@@ -1,5 +1,6 @@
-import path from 'path';
-import os from 'os';
+import path from "path";
+import os from "os";
+
 export default (() => {
   const home_directory = os.homedir();
   const config = {
