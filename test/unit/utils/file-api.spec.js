@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /*globals, jest, describe*/
 const utils = require('../../../lib/utils');
 const fs = require('fs');
@@ -12,7 +13,7 @@ describe('utils module', function () {
       //Arrange
       fs.existsSync.mockReturnValue(false);
       //Action
-      utils.createDirectory('directoryToCreate');
+      utils.default.createDirectory('directoryToCreate');
       //Assert
       expect(fs.mkdir).toHaveBeenCalled();
     });
@@ -21,7 +22,7 @@ describe('utils module', function () {
       //Arrange
       fs.existsSync.mockReturnValue(true);
       //Action
-      utils.createDirectory('directoryToCreate');
+      utils.default.createDirectory('directoryToCreate');
       //Assert
       expect(fs.mkdir).not.toHaveBeenCalled();
     });
@@ -33,7 +34,7 @@ describe('utils module', function () {
       fs.existsSync.mockReturnValue(true);
 
       //Action
-      utils.deleteFile('aaa/filetodelete');
+      utils.default.deleteFile('aaa/filetodelete');
 
       //Assert
       expect(fs.unlinkSync).toHaveBeenCalled();
@@ -45,11 +46,10 @@ describe('utils module', function () {
       fs.existsSync.mockReturnValue(false);
 
       //Action
-      utils.deleteFile('aaa/filetodelete');
+      utils.default.deleteFile('aaa/filetodelete');
 
       //Assert
       expect(fs.unlinkSync).not.toHaveBeenCalled();
     });
   });
 });
-

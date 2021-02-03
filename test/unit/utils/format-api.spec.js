@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /*globals, jest, describe*/
 const utils = require('../../../lib/utils');
 
@@ -21,7 +22,7 @@ describe('utils module', function () {
     it('should return array of error messages, when errors exists and object', () => {
       //Arrange
       //Action
-      const arrMessages = utils.extractErrorMessages(responseWithErrors);
+      const arrMessages = utils.default.extractErrorMessages(responseWithErrors);
       //Assert
       expect(arrMessages.length).toBe(Object.keys(responseWithErrors.body.errors).length);
     });
@@ -29,7 +30,7 @@ describe('utils module', function () {
     it('should return array of error messages, when errors exists and response string', () => {
       //Arrange
       //Action
-      const arrMessages = utils.extractErrorMessages(JSON.stringify(responseWithErrors));
+      const arrMessages = utils.default.extractErrorMessages(JSON.stringify(responseWithErrors));
       //Assert
       expect(arrMessages.length).toBe(Object.keys(responseWithErrors.body.errors).length);
     });
@@ -38,10 +39,9 @@ describe('utils module', function () {
       //Arrange
       responseWithErrors.body.errors = undefined;
       //Action
-      const arrMessages = utils.extractErrorMessages(responseWithErrors);
+      const arrMessages = utils.default.extractErrorMessages(responseWithErrors);
       //Assert
       expect(arrMessages.length).toBe([].length);
     });
   });
 });
-

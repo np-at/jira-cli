@@ -1,16 +1,16 @@
-import fs from 'fs';
+import fs, { PathLike } from 'fs';
 
 import _url from 'url';
 
-function _loadFromFile(path) {
+function _loadFromFile(path: PathLike):string {
   return fs.readFileSync(path, 'utf-8');
 }
 
-function _isFileExists(path): boolean {
+function _isFileExists(path: PathLike): boolean {
   return fs.existsSync(path);
 }
 
-function _createDirectory(directory: string) {
+function _createDirectory(directory: string): void {
   if (!_isFileExists(directory)) {
     fs.mkdir(directory, function(e) {
       console.log(e);
@@ -50,7 +50,7 @@ function _extractErrorMessages(response): string[] {
   return (messages && messages.length) ? messages : convertErrorsToArray(errors);
 }
 
-export default {
+export default  {
   url: _url,
   extractErrorMessages: _extractErrorMessages,
   isFileExists: _isFileExists,

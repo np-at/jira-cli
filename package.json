@@ -14,7 +14,7 @@
     "clean": "rimraf -rf ~/.jira-cli && npm uninstall jira-cli -g",
     "lint": "eslint . --ext .js,.ts --ignore-path .gitignore",
     "fix": "npm run lint -- --fix",
-    "build": "tsc -p ."
+    "build": "rimraf lib/* && tsc -p ."
   },
   "dependencies": {
     "alasql": "^0.6.5",
