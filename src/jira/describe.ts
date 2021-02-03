@@ -1,5 +1,4 @@
-/*global requirejs,console,define,fs*/
-import sslRequest from '../../lib/ssl_request';
+import sslRequest from '../ssl_request';
 
 import Table from 'cli-table';
 
@@ -7,7 +6,7 @@ import openurl from 'openurl';
 
 import url from 'url';
 
-import config from '../../lib/config';
+import config from '../config';
 
 export default (() => {
   const describe = {

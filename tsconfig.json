@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     "outDir": "lib"
   },
+  "typeAcquisition": {
+    "enable": true
+  },
   "exclude": [
     "node_modules",
     "lib",

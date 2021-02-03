@@ -1,9 +1,9 @@
 // https://docs.atlassian.com/software/jira/docs/api/REST/8.1.0/
-import sslRequest from '../../lib/ssl_request';
+import sslRequest from '../ssl_request';
 
 import moment from 'moment';
 
-import config from '../../lib/config';
+import config from '../config';
 
 export default (() => {
   const release = {

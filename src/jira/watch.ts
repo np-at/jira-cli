@@ -1,5 +1,5 @@
 /*global requirejs,console,define,fs*/
-import sslRequest from '../../lib/ssl_request';
+import sslRequest from '../ssl_request';
 
 import config from '../config';
 
