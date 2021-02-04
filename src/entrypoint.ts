@@ -34,12 +34,12 @@ const program = new Command();
 
 // eslint-disable-next-line max-statements
 export default (()=>{
-  function finalCb(err) {
+  function finalCb(err, results?:any) {
     if (err) {
-      console.log(err.toString());
+      console.log(...err.toString());
       process.exit(1);
     }
-
+    console.log(results.toString());
     process.exit(0);
   }
 

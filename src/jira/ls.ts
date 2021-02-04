@@ -5,15 +5,17 @@
  * ./bin/jira.js jql -j 1  "reporter=currentUser() and status='done' and createdDate>'2017-01-01' and createdDate<'2018-04-01'"
  * ./bin/jira.js jql -j 1  "assignee=currentUser() and createdDate>'2017-01-01' and createdDate<'2018-04-01'"
  * */
-import Table from "cli-table";
+import Table from 'cli-table';
 
-import config from "../config";
+import inquirer from 'inquirer';
+import config from '../config';
 
-import async from "async";
+import async, { AsyncResultArrayCallback, AsyncResultCallback, ErrorCallback } from 'async';
 
-import alasql from "alasql";
+import alasql from 'alasql';
 
-import sslRequest from "../ssl_request";
+import sslRequest from '../ssl_request';
+import { Issue } from 'jira-connector/types/api';
 
 export default (() => {
   const ls = {
@@ -22,29 +24,46 @@ export default (() => {
     type: null,
     issues: null,
     table: null,
-    callIssueApi: function(options, cb) {
+    callIssueApi(options: any, cb: (err?: Error|null |undefined, issues?: any) => (any)) {
       const allIssues = [];
       let currentLength = 0;
       let currentOffset = 0;
       const currentLimit = 500;
-      async.doWhilst((callback) => {
+      async.doWhilst(  (callback?: AsyncResultArrayCallback<Issue>) => {
         currentLength = 0;
         const rq = `${config.auth.url}${this.query}&startAt=${currentOffset}&maxResults=${currentLimit}`;
 
         if (options && options.verbose) {
           console.log(rq);
         }
-        sslRequest.get(rq).end((err, res) => {
+        sslRequest.get(rq).then(res => {
           if (!res.ok) {
             return callback((res.body.errorMessages || [res.error]).join('\n'));
-          }
 
+          }
           allIssues.push(...allIssues, ...res.body.issues);
           currentLength = res.body.issues.length;
+
           currentOffset += currentLength;
-          return callback();
+          return callback(null, allIssues);
+        }).catch(rej => {
+          return callback((rej.body.errorMessages || [rej.error]).join('\n'));
         });
-      }, () => currentLength === currentLimit, err => cb(err, allIssues));
+
+
+
+
+        // return callback(null, allIssues);
+
+      }, (_,checkCallback: (err:ErrorCallback, check:boolean)=>boolean) => {
+
+        if (currentLength === 0) {
+          return checkCallback(null,false);
+        }
+        return checkCallback(null,true);
+      }, (er) => {
+        cb(er, allIssues);
+      });
     },
     getIssues: function(options, cb) {
       if (!cb) {

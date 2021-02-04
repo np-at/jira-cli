@@ -3,6 +3,7 @@ module.exports = {
     es6: true,
     node: true,
   },
+  ignorePatterns: ["lib/**","libx/**"],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     // Allows for the parsing of modern ECMAScript features
