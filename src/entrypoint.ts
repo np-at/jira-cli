@@ -7,56 +7,75 @@
 // Meta-data      : http://localhost:8080/rest/api/2/issue/JRA-13/editmeta
 //
 
-import { Command } from "commander";
-import config from "./config";
-import auth from "./auth";
-import ls from "./jira/ls";
-import describe from "./jira/describe";
-import assign from "./jira/assign";
-import fix from "./jira/fix";
-import release from "./jira/release";
-import send from "./jira/send";
-import comment from "./jira/comment";
-import sprint from "./jira/sprint";
-import transitions from "./jira/transitions";
-import worklog from "./jira/worklog";
-import link from "./jira/link";
-import watch from "./jira/watch";
-import addToSprint from "./jira/addToSprint";
-import newCreate from "./jira/new";
-import edit from "./jira/edit";
+import { Command } from 'commander';
+import config from './config';
+import auth from './auth';
+import ls, { lsCommand } from './jira/ls';
+import describe from './jira/describe';
+import assign from './jira/assign';
+import fix from './jira/fix';
+import release from './jira/release';
+import send from './jira/send';
+import comment from './jira/comment';
+import sprint from './jira/sprint';
+import transitions from './jira/transitions';
+import worklog from './jira/worklog';
+import link from './jira/link';
+import watch from './jira/watch';
+import addToSprint from './jira/addToSprint';
+import newCreate from './jira/new';
+import edit from './jira/edit';
 // @ts-ignore
-import pkg from "../package.json";
-import create from "./jira/create";
-import JiraClient from "jira-connector";
+import pkg from '../package.json';
+import { createCommand } from './jira/create';
 
-const program = new Command();
 
-// eslint-disable-next-line max-statements
-export default (()=>{
-  function finalCb(err, results?:any) {
+export interface jiraclCreateOptions {
+  project?: string;
+  priority?: string;
+  type?: number;
+  subtask?: boolean;
+  summary?: string;
+  description?: string;
+  assignee?: string;
+  verbose?: boolean;
+  issue?: string;
+  parent?: string;
+
+}
+
+export default (async () => {
+  function finalCb(err, results?: any) {
     if (err) {
       console.log(...err.toString());
       process.exit(1);
     }
-    console.log(results.toString());
+    // console.log(results.toString());
     process.exit(0);
   }
+  // await selectProject();
+  //
+  // await fetchIssues({}).then(x => {
+  //
+  //   console.log(x);
+  // });
+  const program = new Command().enablePositionalOptions(false).storeOptionsAsProperties(false);
 
   program.version(pkg.version);
-  program
-    .command('ls')
-    .description('List my issues')
-    .option('-p, --project <name>', 'Filter by project', String)
-    .option('-t, --type <name>', 'Filter by type', String)
-    .option('-v, --verbose', 'verbose output')
-    .action(options => {
-      if (options.project) {
-        ls.showByProject(options, finalCb);
-      } else {
-        ls.showAll(options, finalCb);
-      }
-    });
+  lsCommand(program, finalCb);
+  // program
+  //   .command('ls')
+  //   .description('List my issues')
+  //   .option('-p, --project <name>', 'Filter by project', String)
+  //   .option('-t, --type <name>', 'Filter by type', String)
+  //   .option('-v, --verbose', 'verbose output')
+  //   .action(options => {
+  //     if (options.project) {
+  //       ls.showByProject(options, finalCb);
+  //     } else {
+  //       ls.showAll(options, finalCb);
+  //     }
+  //   });
   program
     .command('start <issue>')
     .description('Start working on an issue.')
@@ -190,10 +209,10 @@ export default (()=>{
     .description('Comment an issue.')
     .action(function(issue, text) {
       if (text) {
-      //replace name in comment text if present in user_alias config
-      //if vikas is nickname stored in user_alias config for vikas.sharma
-      //then 'vikas has username [~vikas] [~ajitk] [~mohit] becomes 'vikas has username [~vikas.sharma] [~ajitk] [~mohit]
-      //names which do not match any alias are not changed
+        //replace name in comment text if present in user_alias config
+        //if vikas is nickname stored in user_alias config for vikas.sharma
+        //then 'vikas has username [~vikas] [~ajitk] [~mohit] becomes 'vikas has username [~vikas.sharma] [~ajitk] [~mohit]
+        //names which do not match any alias are not changed
         text = text.replace(/\[~(.*?)\]/g, function(match, tag, index) {
           if (config.user_alias[tag]) {
             return '[~' + config.user_alias[tag] + ']';
@@ -246,30 +265,34 @@ export default (()=>{
       console.log('    <comment> (optional) comment');
       console.log();
     });
-  program
-    .command('create [project[-issue]]')
-    .description('Create an issue or a sub-task')
-    .option('-p, --project <project>', 'Rapid board on which project is to be created', String)
-    .option('-P, --priority <priority>', 'priority of the issue', String)
-    .option('-T --type <type>', 'NUMERIC Issue type', parseInt)
-    .option('-s --subtask <subtask>', 'Issue subtask', String)
-    .option('-S --summary <summary>', 'Issue Summary', String)
-    .option('-d --description <description>', 'Issue description', String)
-    .option('-a --assignee <assignee>', 'Issue assignee', String)
-    .option('-v --verbose', 'Verbose debugging output')
-    .action(function(project, options) {
-      if (config && config.authNew) {
-        const jira = new JiraClient({
-          host: config.authNew.host,
-          // eslint-disable-next-line camelcase
-          basic_auth: {
-            base64: config.authNew.token
-          }
-        });
-        const _create = create(jira);
-        _create.newIssue(project, options);
-      }
-    });
+  createCommand(program, finalCb);
+  //
+  // program
+  //   .command('create [project[-issue]]')
+  //   .description('Create an issue or a sub-task')
+  //   .option<string>('-p, --project <project>', 'Rapid board on which project is to be created', String)
+  //   .option<string>('-P, --priority <priority>', 'priority of the issue', String)
+  //   .option('-T --type <type>', 'NUMERIC Issue type', parseInt)
+  //   .option<string>('-s --subtask <subtask>', 'Issue subtask', undefined)
+  //   .option('-S --summary <summary>', 'Issue Summary', undefined)
+  //   .option('-d --description <description>', 'Issue description', undefined)
+  //   .option('-a --assignee <assignee>', 'Issue assignee',undefined)
+  //   .option('-v --verbose', 'Verbose debugging output')
+  //   .action((projectIssue, options) => {
+  //     options.parent = projectIssue;
+  //     if (config && config.authNew) {
+  //       const jira = new JiraClient({
+  //         host: config.authNew.host,
+  //         // eslint-disable-next-line camelcase
+  //         basic_auth: {
+  //           base64: config.authNew.token
+  //         }
+  //       });
+  //       const _create = create(jira);
+  //       // @ts-ignore
+  //       _create.newIssue(projectIssue, options);
+  //     }
+  //   });
   program
     .command('new [key]')
     .description('Create an issue or a sub-task')
@@ -319,12 +342,12 @@ export default (()=>{
     .command('sprint')
     .description(
       'Works with sprint boards\n' +
-    '\t\t\t\tWith no arguments, displays all rapid boards\n' +
-    '\t\t\t\tWith -r argument, attempt to find a single rapid board\n ' +
-    '\t\t\t\tand display its active sprints\n' +
-    '\t\t\t\tWith both -r and -s arguments\n ' +
-    '\t\t\t\tattempt to get a single rapidboard/ sprint and show its issues. If\n ' +
-    '\t\t\t\ta single sprint board isnt found, show all matching sprint boards\n'
+      '\t\t\t\tWith no arguments, displays all rapid boards\n' +
+      '\t\t\t\tWith -r argument, attempt to find a single rapid board\n ' +
+      '\t\t\t\tand display its active sprints\n' +
+      '\t\t\t\tWith both -r and -s arguments\n ' +
+      '\t\t\t\tattempt to get a single rapidboard/ sprint and show its issues. If\n ' +
+      '\t\t\t\ta single sprint board isnt found, show all matching sprint boards\n'
     )
     .option('-r, --rapidboard <name>', 'Rapidboard to show sprints for', String)
     .option('-s, --sprint <name>', 'Sprint to show the issues', String)
@@ -376,7 +399,7 @@ export default (()=>{
     .action(function(options) {
       send.send(options);
     });
-  program.parse(process.argv);
+  await program.parseAsync();
 
   if (program.args.length === 0) {
     console.log('\nYour first step is to run the config option.\n');

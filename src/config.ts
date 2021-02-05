@@ -1,10 +1,10 @@
 /* eslint-disable prefer-const */
-import settings from "./settings";
-import stripJson from "strip-json-comments";
-import utils from "./utils";
+import settings from './settings';
+import stripJson from 'strip-json-comments';
+import utils from './utils';
 
-import * as initialConfig from "./initial_config";
-import { URL } from "url";
+import * as initialConfig from './initial_config';
+import { URL } from 'url';
 
 export interface IConfig {
   use_self_signed_certificate: boolean;
@@ -69,6 +69,7 @@ function formatToNewAuth(auth: Auth): Auth {
 }
 
 function _createConfig(configFileContent: string):  IConfig {
+
   const configObject = JSON.parse(stripJson(configFileContent));
   const config: IConfig = {
     auth: configObject.auth,
