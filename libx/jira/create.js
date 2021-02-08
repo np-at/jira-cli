@@ -156,7 +156,7 @@ module.exports = function (jira) {
               };
               that.ask('Type the issue summary: ', function (issueSummary) {
                 that.answers.fields.summary = issueSummary;
-                that.ask('Type the issue description: ', function (issueDescription) {
+                that.ask('Type the issue details: ', function (issueDescription) {
                   var defaultAnswer = issueSummary;
 
                   if (!issueDescription) {

@@ -146,7 +146,7 @@ a config file you can use that file as your starting point so your configuration
 		-T --type <type>                Issue type
 		-s --subtask <subtask>          Issue subtask
 		-t --title <title>              Issue title
-		-d --description <description>  Issue description
+		-d --details <details>  Issue details
 		-a --assignee <assignee>        Issue assignee
 
 
@@ -161,7 +161,7 @@ a config file you can use that file as your starting point so your configuration
 	<!-- whenever you create a new issue -->
 	"__always_ask" :{
 	    "fields" :{
-		"description" :{}, <!-- description would be prompted everytime -->
+		"details" :{}, <!-- details would be prompted everytime -->
 		"priority": {}	   <!-- priority would be prompted every time -->
 	    }
 	},
@@ -195,7 +195,7 @@ a config file you can use that file as your starting point so your configuration
 }
 ```
   * Now there are 2 portions of `default_create` config
-	*  `__always_ask` : it contains the fields which would always be prompted when you create an issue. For eg. in above given json , whenever we'll create a new issue , description and priority would always be asked along with other mandatory fields for the board.
+	*  `__always_ask` : it contains the fields which would always be prompted when you create an issue. For eg. in above given json , whenever we'll create a new issue , details and priority would always be asked along with other mandatory fields for the board.
 	*  Rest of the keys in `default_create` are the shortcut keys which you will refer to while calling <kbd>jira new key</kbd>
 
 ### Edit a Jira issue:
@@ -238,7 +238,7 @@ This jira edit functionality is in beta phase and only few type of fields are al
 	  issuetype	{…}
 	  components	{…}
 	  customfield_12000	{…}
-	  description	{…}
+	  details	{…}
 	  fixVersions	{…}
 	  priority	{…}
 	  labels {
@@ -274,7 +274,7 @@ This jira edit functionality is in beta phase and only few type of fields are al
 		issuetype	{…}
 		components	{…}
 		customfield_12000	{…}
-		description	{…}
+		details	{…}
 		fixVersions	{…}
 		priority	{
 			required	false
@@ -431,7 +431,7 @@ Usage: sprint [options]
 ### searching issues
 if you want to search a text in all the issues
   * **using jira search** <kbd>jira jql search SEARCH_TERM</kbd>
-  * **using jira jql [recommended]** <kbd>jira jql "summary ~ SEARCH_TERM OR description ~ SEARCH_TERM"</kbd>
+  * **using jira jql [recommended]** <kbd>jira jql "summary ~ SEARCH_TERM OR details ~ SEARCH_TERM"</kbd>
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -512,4 +512,3 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

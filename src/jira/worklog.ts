@@ -1,11 +1,11 @@
 /*global requirejs,console,define,fs*/
-import sslRequest from "../ssl_request";
+import sslRequest from '../ssl_request';
 
-import Table from "cli-table";
+import Table from 'cli-table';
 
-import moment from "moment";
+import moment from 'moment';
 
-import config from "../config";
+import config from '../config';
 
 export default (() => {
   const worklog = {

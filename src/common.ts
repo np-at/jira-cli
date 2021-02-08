@@ -1,10 +1,11 @@
 /* eslint-disable max-depth */
-import { options as defaultOptions } from "./initial_config";
+import { options as defaultOptions } from './initial_config';
 
-import inquirer from "inquirer";
+import inquirer from 'inquirer';
 
 const prompt = inquirer.createPromptModule();
-export function ask(question: string, callback, yesno: boolean | undefined = undefined, values: Record<string, unknown>[] = [], answer: never | undefined  = undefined): void {
+
+export function ask(question: string, callback, yesno: boolean | undefined = undefined, values: Record<string, unknown>[] = [], answer: never | undefined = undefined): void {
 
   const options = defaultOptions || {},
     issueTypes = [];
@@ -34,7 +35,7 @@ export function ask(question: string, callback, yesno: boolean | undefined = und
     console.log(issueTypes.join('\n'));
   }
 
-  prompt({ message: question }).then(function (answer) {
+  prompt({ message: question }).then(function(answer) {
     if ((answer as string).length > 0) {
       callback(answer);
     } else {

@@ -1,6 +1,6 @@
-import fs from "fs";
-import inquirer from "inquirer";
-import config, { Auth } from "./config";
+import fs from 'fs';
+import inquirer from 'inquirer';
+import config, { Auth } from './config';
 
 const prompt = inquirer.createPromptModule();
 export default {

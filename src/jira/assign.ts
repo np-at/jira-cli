@@ -1,9 +1,9 @@
 /*global console*/
-import sslRequest from "../ssl_request";
+import sslRequest from '../ssl_request';
 
-import utils from "../utils";
+import utils from '../utils';
 
-import config from "../config";
+import config from '../config';
 
 export default (() => {
   const assign = {

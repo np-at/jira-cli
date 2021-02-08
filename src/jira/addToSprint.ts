@@ -1,16 +1,16 @@
 //https://jira.mypaytm.com/rest/api/2/issue/MPP-509/editmeta
 //https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis/jira-rest-api-tutorials/jira-rest-api-example-edit-issues
 
-import sslRequest from "../ssl_request";
+import sslRequest from '../ssl_request';
 
-import config from "../config";
+import config from '../config';
 
-import sprint from "./sprint";
+import sprint from './sprint';
 
-import ls from "./ls";
+import ls from './ls';
 
-import async from "async";
-import inquirer from "inquirer";
+import async from 'async';
+import inquirer from 'inquirer';
 
 const prompt = inquirer.createPromptModule();
 export default (()=> {

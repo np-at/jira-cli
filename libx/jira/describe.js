@@ -51,7 +51,7 @@ module.exports = function () {
         }
 
         if (!that.description) {
-          that.description = 'No description';
+          that.description = 'No details';
         }
 
         that.table.push({

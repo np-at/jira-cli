@@ -2,17 +2,21 @@ import utils from '../utils';
 import inquirer from 'inquirer';
 import { jiraclCreateOptions } from '../entrypoint';
 import commander from 'commander';
-import { client, parseProjIssue } from '../helpers/helpers';
-import { Issues } from 'jira.js/out/api';
+import { client } from '../helpers/helpers';
 import { IssueResponse } from 'jira-connector/types/api';
+import config from '../config';
+import { dynamicPrompt } from '../helpers/DynamicPrompt';
 
 const printError = messages => {
   console.log(messages.join('\n'));
 };
-const prompt = inquirer.createPromptModule();
 
 
-export const createCommand = (prog: commander.Command, extCallback: (err: any, results: any) => void): void => {
+export default async (prog: commander.Command, extCallback: (err: any, results: any) => void): Promise<void> => {
+
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
   prog
     .command('create [project[-issue]]')
@@ -22,7 +26,7 @@ export const createCommand = (prog: commander.Command, extCallback: (err: any, r
     .option('-T --type <type>', 'NUMERIC Issue type', parseInt)
     .option<string>('-s --subtask <subtask>', 'Issue subtask', undefined)
     .option('-S --summary <summary>', 'Issue Summary', undefined)
-    .option('-d --description <description>', 'Issue description', undefined)
+    .option('-d --details <details>', 'Issue details', undefined)
     .option('-a --assignee <assignee>', 'Issue assignee', undefined)
     .option('-v --verbose', 'Verbose debugging output')
     .action(async (projIssue, options: jiraclCreateOptions) => {
@@ -30,34 +34,73 @@ export const createCommand = (prog: commander.Command, extCallback: (err: any, r
 
       let err, results;
       try {
-        results = await parseNewOptions(options);
+        results = await assembleCreationParameters(options);
       } catch (e) {
         err = e;
       } finally {
         extCallback(err, results);
       }
-      // if (config && config.authNew) {
-      //   const jira = new JiraClient({
-      //     host: config.authNew.host,
-      //     // eslint-disable-next-line camelcase
-      //     basic_auth: {
-      //       base64: config.authNew.token
-      //     }
-      //   });
-      //   // const _create = create(jira);
-      //   // @ts-ignore
-      //   _create.newIssue(projectIssue, options);
+
     });
-  // });
 };
 
+export interface IssueCreationParameters {
+
+}
+
+const assembleCreationParameters = async (options: jiraclCreateOptions) => {
+  // get default user prefences from config file
+  const userConfigPrefs = { ...config.default_create.__always_ask.fields };
+  //override preferences and merge with any explicitly defined cli parameters
+  Object.assign(userConfigPrefs, options);
+  const e = {};
+  await dynamicPrompt('project', e, userConfigPrefs);
+  await dynamicPrompt('issueType', e, userConfigPrefs);
+
+  if (e['issueType']?.subtask === true)
+    await dynamicPrompt('parentTask', e, userConfigPrefs);
+
+  await dynamicPrompt('details', e, userConfigPrefs);
+  const requestFieldsObject = {
+    project: {
+      id: e['project'].id
+    },
+    assignee: {
+      name: (await client.myself.getCurrentUser())['name']
+    },
+    summary: e['summary'],
+    issuetype: {
+      id: e['issueType'].id
+    },
+    description: e['description']
+  };
+  if (e.hasOwnProperty('parentTask'))
+    requestFieldsObject['parentTask'] = { id: e['parentTask'].id };
+  try {
+    const response = await client.issues.createIssue({ fields: requestFieldsObject });
+    console.debug(response);
+
+  } catch (e) {
+    console.error(e);
+  }
+  // await dynamicPrompt('additional', e, userConfigPrefs);
+
+
+  // any options that are explicitly null can be assumed to come fro the config file
+  // and need input from the user
+  // Object.keys(userConfigPrefs).filter(x => x === null).forEach(x => {
+  //
+  // });
+  // client.issues.createIssue({fields: userConfigPrefs})
+  // const creationOptions;
+};
 const parseNewOptions = async (options: jiraclCreateOptions) => {
   const fields = {};
   if (options.parent) {
-    const parent: IssueResponse = await client.issue.getIssue({issueIdOrKey: options.parent});
-    fields['parent'] = {key: parent.key };
+    const parent: IssueResponse = await client.issue.getIssue({ issueIdOrKey: options.parent });
+    fields['parent'] = { key: parent.key };
   }
-  client.issues.createIssue({});
+  // client.issues.createIssue({});
 
   const project = await client.projects.getAllProjects();
   console.log(project);
@@ -65,7 +108,7 @@ const parseNewOptions = async (options: jiraclCreateOptions) => {
 };
 
 
-export default function(jira) {
+function creation(jira) {
   const create = {
     query: null,
     table: null,
@@ -105,7 +148,7 @@ export default function(jira) {
         console.log(issueTypes.join('\n'));
       }
 
-      prompt({ message: question, name: question }, function(answer) {
+      inquirer.prompt({ message: question, name: question }, function(answer) {
         if (answer.length > 0) {
           callback(answer);
         } else {
@@ -216,7 +259,7 @@ export default function(jira) {
               };
               that.ask('Type the issue summary: ', function(issueSummary) {
                 that.answers.fields.summary = issueSummary;
-                that.ask('Type the issue description: ', function(issueDescription) {
+                that.ask('Type the issue details: ', function(issueDescription) {
                   const defaultAnswer = issueSummary;
 
                   if (!issueDescription) {
@@ -387,7 +430,7 @@ export default function(jira) {
 //         id: projectId
 //       };
 //
-//       if (!options.subtask && (options.priority || options.type || options.summary || options.description)) {
+//       if (!options.subtask && (options.priority || options.type || options.summary || options.details)) {
 //         options.subtask = false;
 //       }
 //
@@ -404,18 +447,18 @@ export default function(jira) {
 //           };
 //           ask('Type the issue summary: ', function(issueSummary) {
 //             answers.fields.summary = issueSummary;
-//             ask('Type the issue description: ', function(issueDescription) {
+//             ask('Type the issue details: ', function(issueDescription) {
 //               const defaultAnswer = issueSummary;
 //
 //               if (!issueDescription) {
-//                 this.answer.fields.description = defaultAnswer;
+//                 this.answer.fields.details = defaultAnswer;
 //               } else {
-//                 answers.fields.description = issueDescription;
+//                 answers.fields.details = issueDescription;
 //               }
 //
 //               process.stdin.destroy();
 //               this.saveIssue(options);
-//             }, null, null, options.description);
+//             }, null, null, options.details);
 //           }, null, null, options.summary);
 //         });
 //       });
@@ -573,7 +616,7 @@ export default function(jira) {
 //             id: projectId
 //           };
 //
-//           if (!options.subtask && (options.priority || options.type || options.summary || options.description)) {
+//           if (!options.subtask && (options.priority || options.type || options.summary || options.details)) {
 //             options.subtask = false;
 //           }
 //
@@ -590,18 +633,18 @@ export default function(jira) {
 //               };
 //               this.ask('Type the issue summary: ', function(issueSummary) {
 //                 this.answers.fields.summary = issueSummary;
-//                 this.ask('Type the issue description: ', function(issueDescription) {
+//                 this.ask('Type the issue details: ', function(issueDescription) {
 //                   const defaultAnswer = issueSummary;
 //
 //                   if (!issueDescription) {
-//                     this.answer.fields.description = defaultAnswer;
+//                     this.answer.fields.details = defaultAnswer;
 //                   } else {
-//                     this.answers.fields.description = issueDescription;
+//                     this.answers.fields.details = issueDescription;
 //                   }
 //
 //                   process.stdin.destroy();
 //                   this.saveIssue(options);
-//                 }, null, null, options.description);
+//                 }, null, null, options.details);
 //               }, null, null, options.summary);
 //             });
 //           });

@@ -1,4 +1,3 @@
-
 /*
  * ./bin/jira.js jql -c "assignee=currentUser()" -s status
  * ./bin/jira.js jql -j 1  "reporter=currentUser() and status='done' and createdDate>'2017-01-01' and createdDate<'2018-04-01'"
@@ -288,7 +287,7 @@ function showByProject(options, cb) {
 }
 
 function search(query, cb) {
-  this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+description+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
+  this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+details+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
   return getIssues(cb);
 }
 
@@ -511,7 +510,7 @@ export default (function() {
       return this.getIssues(cb);
     },
     search: function(query, cb) {
-      this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+description+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
+      this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+details+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
       return this.getIssues(cb);
     },
     jqlSearch: function(jql, options, cb) {

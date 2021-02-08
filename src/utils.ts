@@ -1,6 +1,6 @@
-import fs, { PathLike } from "fs";
+import fs, { PathLike } from 'fs';
 
-import _url from "url";
+import _url from 'url';
 
 function _loadFromFile(path: PathLike):string {
   return fs.readFileSync(path, 'utf-8');

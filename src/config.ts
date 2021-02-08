@@ -6,7 +6,7 @@ import utils from './utils';
 import * as initialConfig from './initial_config';
 import { URL } from 'url';
 
-export interface IConfig {
+export interface IConfig extends MetaDataObj{
   use_self_signed_certificate: boolean;
   auth: Auth;
   custom_alasql: Record<string, string>[];
@@ -15,11 +15,21 @@ export interface IConfig {
   };
   custom_jql: any;
   edit_meta: any;
-  default_create: any;
+  default_create: {
+    __always_ask: {
+      fields: {[key:string]:string}
+    }
+  };
   user_alias: any;
-  authNew: any
+  authNew: any,
 }
-
+interface MetaDataObj {
+  [key:string]: unknown
+}
+interface M {
+  key: string,
+  value: unknown
+}
 export interface Auth {
   url?: string,
   user?: string,
@@ -36,7 +46,11 @@ _ensureConfig();
 
 _load();
 
+function _getCreateParams() {
+  return Object.entries(_data.default_create.__always_ask.fields);
 
+
+}
 function _ensureConfig(): void {
   utils.createDirectory(configDir);
 }
@@ -117,5 +131,6 @@ export default {
   clear: _clear,
   loadInitialFromTemplate: _loadInitialFromTemplate,
   isLoaded: _isLoaded,
+  default_create: _getCreateParams(),
   ..._data
 };

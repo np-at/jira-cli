@@ -1,8 +1,8 @@
 /* eslint-disable max-depth */
-import sslRequest from "../ssl_request";
+import sslRequest from '../ssl_request';
 
-import config from "../config";
-import inquirer from "inquirer";
+import config from '../config';
+import inquirer from 'inquirer';
 
 const prompt = inquirer.createPromptModule();
 export default (() => {

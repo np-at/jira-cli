@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* eslint-disable max-statements */
+
 //
 // Main API       : https://docs.atlassian.com/software/jira/docs/api/REST/8.1.0/
 // Creating Issues: https://developer.atlassian.com/jiradev/jira-apis/about-the-jira-rest-apis/jira-rest-api-tutorials/jira-rest-api-examples#JIRARESTAPIexamples-Creatinganissueusingcustomfields
@@ -27,7 +29,7 @@ import newCreate from './jira/new';
 import edit from './jira/edit';
 // @ts-ignore
 import pkg from '../package.json';
-import { createCommand } from './jira/create';
+import createCommand from './jira/create';
 
 
 export interface jiraclCreateOptions {
@@ -65,7 +67,7 @@ export default (async () => {
   lsCommand(program, finalCb);
   // program
   //   .command('ls')
-  //   .description('List my issues')
+  //   .details('List my issues')
   //   .option('-p, --project <name>', 'Filter by project', String)
   //   .option('-t, --type <name>', 'Filter by type', String)
   //   .option('-v, --verbose', 'verbose output')
@@ -265,17 +267,17 @@ export default (async () => {
       console.log('    <comment> (optional) comment');
       console.log();
     });
-  createCommand(program, finalCb);
+  await createCommand(program, finalCb);
   //
   // program
   //   .command('create [project[-issue]]')
-  //   .description('Create an issue or a sub-task')
+  //   .details('Create an issue or a sub-task')
   //   .option<string>('-p, --project <project>', 'Rapid board on which project is to be created', String)
   //   .option<string>('-P, --priority <priority>', 'priority of the issue', String)
   //   .option('-T --type <type>', 'NUMERIC Issue type', parseInt)
   //   .option<string>('-s --subtask <subtask>', 'Issue subtask', undefined)
   //   .option('-S --summary <summary>', 'Issue Summary', undefined)
-  //   .option('-d --description <description>', 'Issue description', undefined)
+  //   .option('-d --details <details>', 'Issue details', undefined)
   //   .option('-a --assignee <assignee>', 'Issue assignee',undefined)
   //   .option('-v --verbose', 'Verbose debugging output')
   //   .action((projectIssue, options) => {
@@ -301,7 +303,7 @@ export default (async () => {
     .option('-T --type <type>', 'Issue type', String)
     .option('-s --subtask <subtask>', 'Issue subtask', String)
     .option('-S --summary <summary>', 'Issue summary', String)
-    .option('-d --description <description>', 'Issue description', String)
+    .option('-d --details <details>', 'Issue details', String)
     .option('-c --component <component>', 'Issue component', String)
     .option('-l --label <label>', 'Issue label', String)
     .option('-a --assignee <assignee>', 'Issue assignee', String)
@@ -378,7 +380,7 @@ export default (async () => {
     .command('release <version>')
     .description('Create a FixVersion/Release (see release -h for more details)')
     .option('-p, --project <name>', 'Project', String)
-    .option('-d, --description <name>', 'Description', String)
+    .option('-d, --details <name>', 'Description', String)
     .option('-r, --released', 'Set released to true - default is false')
     .action(function(version, options) {
       release.create(version, options);

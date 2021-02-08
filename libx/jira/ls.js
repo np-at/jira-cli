@@ -149,7 +149,7 @@ module.exports = function () {
       return this.getIssues(cb);
     },
     search: function (query, cb) {
-      this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+description+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
+      this.query = 'rest/api/2/search?jql=' + 'summary+~+"' + query + '"' + '+OR+details+~+"' + query + '"' + '+OR+comment+~+"' + query + '"' + '+order+by+priority+DESC,+key+ASC';
       return this.getIssues(cb);
     },
     jqlSearch: function (jql, options, cb) {

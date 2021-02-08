@@ -250,7 +250,7 @@ program
   .option('-T --type <type>', 'NUMERIC Issue type', parseInt)
   .option('-s --subtask <subtask>', 'Issue subtask', String)
   .option('-S --summary <summary>', 'Issue Summary', String)
-  .option('-d --description <description>', 'Issue description', String)
+  .option('-d --details <details>', 'Issue details', String)
   .option('-a --assignee <assignee>', 'Issue assignee', String)
   .option('-v --verbose', 'Verbose debugging output')
   .action(function(project, options) {
@@ -274,7 +274,7 @@ program
   .option('-T --type <type>', 'Issue type', String)
   .option('-s --subtask <subtask>', 'Issue subtask', String)
   .option('-S --summary <summary>', 'Issue summary', String)
-  .option('-d --description <description>', 'Issue description', String)
+  .option('-d --details <details>', 'Issue details', String)
   .option('-c --component <component>', 'Issue component', String)
   .option('-l --label <label>', 'Issue label', String)
   .option('-a --assignee <assignee>', 'Issue assignee', String)
@@ -351,7 +351,7 @@ program
   .command('release <version>')
   .description('Create a FixVersion/Release (see release -h for more details)')
   .option('-p, --project <name>', 'Project', String)
-  .option('-d, --description <name>', 'Description', String)
+  .option('-d, --details <name>', 'Description', String)
   .option('-r, --released', 'Set released to true - default is false')
   .action(function(version, options) {
     release.create(version, options);
