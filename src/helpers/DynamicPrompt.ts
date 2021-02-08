@@ -122,7 +122,8 @@ const additionalFields = async (currentAnswers: Record<string, unknown>) => {
 
   const createMeta = await client.issues.getCreateIssueMetadata({
     projectKeys: [currentAnswers.project['key']],
-    issuetypeIds: [currentAnswers.issueType['id']]
+    issuetypeIds: [currentAnswers.issueType['id']],
+    expand: 'projects,issuetypes'
   });
   return createMeta;
 };
@@ -147,14 +148,16 @@ const issueDetails = async (currentAnswers: Record<string, unknown>) => {
 ;
 
 const projectPrompt = async (currentAnswers: Record<string, unknown>, defaultProject?: string | JiraProject) => {
-  const projects = await client.projects.getAllProjects({ expand: 'issueTypes' });
+  const projects = (await client.projects.getAllProjects({ expand: 'issueTypes' })).map(x => ({
+    name: x.name,
+    value: x
+  }));
   const answer = await inquirer.prompt({
     // @ts-ignore
-    type: 'search-list',
+    type: 'autocomplete',
     name: 'project',
-    choices: projects.map(x => {
-      return { name: x.name, value: x };
-    }),
+    choices: projects,
+    source: ()=> Promise.resolve(projects),
     message: 'choose a project'
   });
   currentAnswers.project = answer.project;
@@ -166,11 +169,11 @@ const fillSuggestions = async (currentInput: string, project) => {
     query: currentInput,
     currentProjectId: project.id
   });
-  return response.sections.flatMap(x => x.issues).filter(x=>x.status !== 'Done');
+  return response.sections.flatMap(x => x.issues).filter(x => x.status !== 'Done');
 };
-const parentTaskPrompt = async (currentAsnwers: Record<string, unknown>, userPreferences?: Record<string, unknown>) => {
-  if (!currentAsnwers.project) throw new Error('parent project must be selected before choosing a parent task');
-  const tasksList = (await fillSuggestions('', currentAsnwers.project)).map(x => ({
+const parentTaskPrompt = async (currentAnswers: Record<string, unknown>, userPreferences?: Record<string, unknown>) => {
+  if (!currentAnswers.project) throw new Error('parent project must be selected before choosing a parent task');
+  const tasksList = (await fillSuggestions('', currentAnswers.project)).map(x => ({
     name: x['summary'] ?? 'unk',
     value: x
   }));
@@ -181,10 +184,10 @@ const parentTaskPrompt = async (currentAsnwers: Record<string, unknown>, userPre
     choices: tasksList,
     message: 'Choose parent task?',
     source: async (answersSoFar, input) => {
-      return (await fillSuggestions(input, currentAsnwers.project)).map(x=>({name: x['summary'], value: x}));
-    },
+      return (await fillSuggestions(input, currentAnswers.project)).map(x => ({ name: x['summary'], value: x }));
+    }
     // validate: async input => {
-    //   // const response = await fillSuggestions(input, currentAsnwers.project);
+    //   // const response = await fillSuggestions(input, currentAnswers.project);
     //   // tasksList = response.map(x => ({ name: x['summary'], value: x }));
     //   if (!input)
     //     return 'no input';
@@ -193,7 +196,7 @@ const parentTaskPrompt = async (currentAsnwers: Record<string, unknown>, userPre
     // }
 
   });
-  currentAsnwers.parentTask = answer.parentTask;
+  currentAnswers.parentTask = answer.parentTask;
 
 };
 const issueTypePrompt = async (parentProject: string | { issueTypes: any[] }, currentAnswers: Record<string, unknown>) => {

@@ -61,6 +61,11 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
     await dynamicPrompt('parentTask', e, userConfigPrefs);
 
   await dynamicPrompt('details', e, userConfigPrefs);
+
+  // getCreateMeta not working atm
+  // await dynamicPrompt('additional', e, userConfigPrefs);
+
+
   const requestFieldsObject = {
     project: {
       id: e['project'].id
