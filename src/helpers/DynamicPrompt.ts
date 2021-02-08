@@ -1,5 +1,5 @@
-import { client } from './helpers';
-import inquirer from 'inquirer';
+import {client} from './helpers';
+import inquirer, {QuestionCollection} from 'inquirer';
 
 export interface JiraIssueType {
   self: string,
@@ -119,13 +119,17 @@ export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status
 
 const additionalFields = async (currentAnswers: Record<string, unknown>) => {
   if (!currentAnswers.project) throw new Error();
-
+  const availableFields = await getAdditionalFields(currentAnswers);
+  const questions: QuestionCollection = [];
+// TODO: this
+};
+const getAdditionalFields = async (currentAnswers: Record<string, unknown>): Promise<object[]> => {
   const createMeta = await client.issues.getCreateIssueMetadata({
     projectKeys: [currentAnswers.project['key']],
     issuetypeIds: [currentAnswers.issueType['id']],
-    expand: 'projects,issuetypes'
+    expand: 'projects,issuetypes,fields,projects.issuetypes.fields'
   });
-  return createMeta;
+  return createMeta.projects[0].issueTypes[0].fields.map(x => x.fields);
 };
 
 
@@ -148,7 +152,7 @@ const issueDetails = async (currentAnswers: Record<string, unknown>) => {
 ;
 
 const projectPrompt = async (currentAnswers: Record<string, unknown>, defaultProject?: string | JiraProject) => {
-  const projects = (await client.projects.getAllProjects({ expand: 'issueTypes' })).map(x => ({
+  const projects = (await client.projects.getAllProjects({expand: 'issueTypes'})).map(x => ({
     name: x.name,
     value: x
   }));
@@ -157,7 +161,7 @@ const projectPrompt = async (currentAnswers: Record<string, unknown>, defaultPro
     type: 'autocomplete',
     name: 'project',
     choices: projects,
-    source: ()=> Promise.resolve(projects),
+    source: () => Promise.resolve(projects),
     message: 'choose a project'
   });
   currentAnswers.project = answer.project;
@@ -184,7 +188,7 @@ const parentTaskPrompt = async (currentAnswers: Record<string, unknown>, userPre
     choices: tasksList,
     message: 'Choose parent task?',
     source: async (answersSoFar, input) => {
-      return (await fillSuggestions(input, currentAnswers.project)).map(x => ({ name: x['summary'], value: x }));
+      return (await fillSuggestions(input, currentAnswers.project)).map(x => ({name: x['summary'], value: x}));
     }
     // validate: async input => {
     //   // const response = await fillSuggestions(input, currentAnswers.project);
@@ -207,7 +211,7 @@ const issueTypePrompt = async (parentProject: string | { issueTypes: any[] }, cu
   else if (parentProject && parentProject.hasOwnProperty('issueTypes')) issueTypes.push(...parentProject['issueTypes']);
   else if (typeof parentProject === 'string') {
 
-    const project = await client.projects.getProject({ projectIdOrKey: parentProject });
+    const project = await client.projects.getProject({projectIdOrKey: parentProject});
     issueTypes.push(...project.issueTypes);
 
   }
@@ -216,7 +220,7 @@ const issueTypePrompt = async (parentProject: string | { issueTypes: any[] }, cu
   const answer = await inquirer.prompt({
     type: 'list',
     choices: [...(new Set(issueTypes))].map(x => {
-      return { name: x.name, value: x };
+      return {name: x.name, value: x};
     }),
     message: 'choose an issue type',
     name: 'issueType'

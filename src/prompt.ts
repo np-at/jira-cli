@@ -1,4 +1,3 @@
-/*global requirejs,console,define,fs*/
 
 import readline from 'readline';
 
