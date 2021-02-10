@@ -61,7 +61,7 @@ export const getDefaultCreate = async (meta?): Promise<unknown> => {
 async function lsEntry(options) {
   const e = options as jiraclCreateOptions;
   return await client.issueSearch.searchForIssuesUsingJqlGet({
-    jql: 'assignee=currentUser()', fields: ['*all']
+    jql: 'assignee=currentUser()', fields: ['*all'], maxResults: 500
   });
   // return await client.issues.getIssue({ issueIdOrKey: e.issue });
 
