@@ -27,6 +27,8 @@ import watch from './jira/watch';
 import addToSprint from './jira/addToSprint';
 import newCreate from './jira/new';
 import edit from './jira/edit';
+
+import omelette from 'omelette';
 // @ts-ignore
 import pkg from '../package.json';
 import createCommand from './jira/create';
@@ -55,14 +57,15 @@ export default (async () => {
     // console.log(results.toString());
     process.exit(0);
   }
-  // await selectProject();
-  //
-  // await fetchIssues({}).then(x => {
-  //
-  //   console.log(x);
-  // });
-  const program = new Command().enablePositionalOptions(false).storeOptionsAsProperties(false);
 
+  const completion  = omelette('jira <test>');
+  completion.onAsync('test', async ({ reply }) => {
+    return reply(Promise.resolve(['ttn-24', 'ttn-222']));
+  });
+  completion.init();
+
+
+  const program = new Command().enablePositionalOptions(false).storeOptionsAsProperties(false);
   program.version(pkg.version);
   lsCommand(program, finalCb);
   // program
