@@ -97,7 +97,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
     const epicParent = await inquirer.prompt({
       type: 'list',
       choices: epics.issues.map(x => ({ name: x.fields.summary, value: x })),
-      default: userConfigPrefs.cache['recent']['epic']['fields']['summary'] ?? undefined,
+      default: userConfigPrefs.cache['recent']?.['epic']?.['fields']?.['summary'] ?? undefined,
       name: 'epicParentAnswer'
     });
     e.epicParent = epicParent.epicParentAnswer;
@@ -131,7 +131,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   if (e.parentTask)
     requestFieldsObject['parent'] = { id: e.parentTask.id };
   else if (e.epicParent)
-    requestFieldsObject['parent'] = { id: e.epicParent };
+    requestFieldsObject['parent'] = { id: e.epicParent.id };
   try {
     const response = await client.issues.createIssue({ fields: requestFieldsObject });
     console.debug(response);
