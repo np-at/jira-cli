@@ -13,8 +13,9 @@ import async from 'async';
 import inquirer from 'inquirer';
 
 const prompt = inquirer.createPromptModule();
-export default (()=> {
-  function ask(question, callback, yesno?:boolean, values?: unknown[], options?: Record<string, never>) {
+
+export default function addToSprint() {
+  function ask(question, callback, yesno?: boolean, values?: unknown[], options?: Record<string, never>) {
     options = options || {};
     const issueTypes = [];
     let i = 0;
@@ -106,4 +107,4 @@ export default (()=> {
 
 
   return addToSprint;
-})();
+}

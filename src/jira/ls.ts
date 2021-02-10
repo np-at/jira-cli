@@ -31,7 +31,6 @@ export const lsCommand = (prog: commander.Command, extCallback: (err: any, resul
       let err: Error, results: SearchResult;
       try {
         results = await lsEntry(options);
-        const meta = await client.issues.getCreateIssueMetadata();
         displayIssues(results.issues);
       } catch (e) {
         err = e;
@@ -61,7 +60,8 @@ export const getDefaultCreate = async (meta?): Promise<unknown> => {
 
 async function lsEntry(options) {
   const e = options as jiraclCreateOptions;
-  return await client.issueSearch.searchForIssuesUsingJqlGet({ jql: 'assignee=currentUser()', fields: ['*all']
+  return await client.issueSearch.searchForIssuesUsingJqlGet({
+    jql: 'assignee=currentUser()', fields: ['*all']
   });
   // return await client.issues.getIssue({ issueIdOrKey: e.issue });
 
@@ -99,21 +99,21 @@ function displayIssues(issues: IssueResponse[], options?) {
 
   const newIssueList = [];
   // get all unique parents
-  const parents = [...new Set(issues.map(x=>x.fields.parent?.key))];
+  const parents = [...new Set(issues.map(x => x.fields.parent?.key))];
   // reorder so list is parent | children... parent | children ... orphans...
-  parents.forEach((x)=> {
+  parents.forEach((x) => {
     if (!x)
       return;
-    newIssueList.push(issues.find(y=>y.key === x));
-    const s = issues.filter(v=>v.fields.parent?.key === x).sort().reverse();
+    newIssueList.push(issues.find(y => y.key === x));
+    const s = issues.filter(v => v.fields.parent?.key === x).sort().reverse();
     newIssueList.push(...s);
-    issues = issues.filter(v=>(v.fields?.parent?.key !== x && v.key !== x));
+    issues = issues.filter(v => (v.fields?.parent?.key !== x && v.key !== x));
   });
   newIssueList.push(...issues);
-  issues = newIssueList.filter(x=>x.fields.status.name !== 'Done');
+  issues = newIssueList.filter(x => x.fields.status.name !== 'Done');
   for (let i = 0; i < issues.length; i += 1) {
-    let priority = issues[i].fields?.priority,
-      summary = issues[i].fields.summary;
+    let priority = issues[i].fields?.priority;
+    const summary = issues[i].fields.summary;
     const status = issues[i].fields.status;
 
     if (!priority) {
@@ -133,7 +133,7 @@ function displayIssues(issues: IssueResponse[], options?) {
       table.push([chalk.redBright(issues[i]?.key), priority.name, summary, status.name, fv ?? 'n/a']);
     else if (issues[i].fields?.parent)
       // indent children to indicate relationship
-      table.push([' |-' + issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
+      table.push(['|-' + issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
     else
       //orphans
       table.push([issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
@@ -207,7 +207,7 @@ function getIssues(options, cb?) {
     this.issues = issues;
     this.table = new Table({
       head: ['Key', 'Priority', 'Summary', 'Status', 'FixVersions'],
-      colWidths: [20, 10, getMainTextColWidth(160),100,30],
+      colWidths: [20, 10, getMainTextColWidth(160), 100, 30],
       chars: {
         'top': '',
         'top-mid': '',

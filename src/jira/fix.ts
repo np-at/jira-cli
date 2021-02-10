@@ -1,4 +1,3 @@
-/*global requirejs,console,define,fs*/
 import sslRequest from '../ssl_request';
 
 import config from '../config';

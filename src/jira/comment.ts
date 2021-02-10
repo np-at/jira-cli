@@ -3,11 +3,13 @@ import sslRequest from '../ssl_request';
 
 import config from '../config';
 
-export default (() => {
+export default comment;
+
+function comment(): { query: null; show(issue): void; to: (issue, comment) => void; table: null } {
   const comment = {
     query: null,
     table: null,
-    to: function (issue, comment) {
+    to: function(issue, comment) {
       this.query = 'rest/api/latest/issue/' + issue + '/comment';
       sslRequest.post(config.auth.url + this.query).send({
         body: comment
@@ -32,7 +34,7 @@ export default (() => {
 
           if (res.body.total > 0) {
             for (i = 0; i < res.body.total; i += 1) {
-              let updated: Date|string = new Date(res.body.comments[i].updated);
+              let updated: Date | string = new Date(res.body.comments[i].updated);
               updated = ' (' + updated + ')';
               console.log('\n' + res.body.comments[i].author.displayName.cyan + updated);
               console.log(res.body.comments[i].body);
@@ -44,4 +46,4 @@ export default (() => {
     }
   };
   return comment;
-})();
+}

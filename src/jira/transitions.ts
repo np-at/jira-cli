@@ -1,15 +1,23 @@
 /* eslint-disable brace-style,max-depth */
-/*global requirejs,console,define,fs*/
 import sslRequest from '../ssl_request';
 
 import Table from 'cli-table';
 
 import config from '../config';
+import inquirer_autocomplete_prompt from 'inquirer-autocomplete-prompt';
 
 import inquirer from 'inquirer';
+import commander from 'commander';
 
-const prompt = inquirer.createPromptModule();
-export default (() => {
+
+const prompt = inquirer.createPromptModule().registerPrompt('autocomplete', inquirer_autocomplete_prompt);
+
+export const registerTransitionCommand = (prog: commander.Command) => {
+  prog.command('t [issue] [transition_state]');
+
+};
+
+export default function transitions(): { getTransitions: (issue, cb) => void; transitionID: null; query: null; start: (issue, cb) => void; transitions: null; done: (issue, resolution, cb) => void; stop: (issue, cb) => void; review: (issue, cb) => void; ask(question, callback, yesno, values, answer?: unknown): any; invalid: (issue, resolution, cb) => void; getTransitionCode: (issue, transitionName, cb) => void; getResolutionCode: (resolutionName, callback) => void; doTransition: (issue, transitionID, resolutionID, cb?: any) => void; makeTransition: (issue, cb) => void } {
   const transitions = {
     query: null,
     transitions: null,
@@ -125,7 +133,6 @@ export default (() => {
       });
     },
     getTransitionCode: function(issue, transitionName, cb) {
-      const i = 0;
       transitions.getTransitions(issue, function(err, allTransitions) {
         if (err) {
           return cb(err);
@@ -253,4 +260,4 @@ export default (() => {
     }
   };
   return transitions;
-})();
+}

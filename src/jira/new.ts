@@ -35,7 +35,8 @@ interface ICreate {
   create: any
 }
 
-export default (() => {
+
+export default function newFxn() {
   const create: ICreate = {
     query: null,
     table: null,
@@ -324,4 +325,4 @@ export default (() => {
     }
   };
   return create;
-})();
+}

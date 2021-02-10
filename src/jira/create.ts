@@ -3,20 +3,28 @@ import inquirer from 'inquirer';
 import { jiraclCreateOptions } from '../entrypoint';
 import commander from 'commander';
 import { client } from '../helpers/helpers';
-import { IssueResponse } from 'jira-connector/types/api';
+import { IssueResponse, SearchResult, UserInfo } from 'jira-connector/types/api';
 import config from '../config';
-import { dynamicPrompt } from '../helpers/DynamicPrompt';
+import {
+  askIssueSummaryAndDetails,
+  issueTypePrompt,
+  JiraIssueType,
+  JiraProject,
+  parentTaskPrompt,
+  projectPrompt
+} from '../helpers/DynamicPrompt';
+
+import inquirer_autocomplete_prompt from 'inquirer-autocomplete-prompt';
+import Cache from '../helpers/cache';
+
 
 const printError = messages => {
   console.log(messages.join('\n'));
 };
 
 
-export default async (prog: commander.Command, extCallback: (err: any, results: any) => void): Promise<void> => {
-
-
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+export default async (prog: commander.Command, extCallback: (errors: Error, dataResults: unknown) => void): Promise<void> => {
+  inquirer.registerPrompt('autocomplete', inquirer_autocomplete_prompt);
 
   prog
     .command('create [project[-issue]]')
@@ -44,47 +52,90 @@ export default async (prog: commander.Command, extCallback: (err: any, results: 
     });
 };
 
-export interface IssueCreationParameters {
+
+export interface UserAnswersObject {
+  project?: JiraProject,
+  issueType?: JiraIssueType,
+  summary?: string,
+  description?: string,
+  parentTask?: IssueResponse,
+  isSubTask?: boolean,
+  assignee?: UserInfo,
+  epicParent?: IssueResponse
 
 }
 
 const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   // get default user prefences from config file
-  const userConfigPrefs = { ...config.default_create.__always_ask.fields };
+  const userConfigPrefs: Record<string, unknown> = { ...config.default_create.__always_ask.fields };
+  const cache = new Cache();
   //override preferences and merge with any explicitly defined cli parameters
   Object.assign(userConfigPrefs, options);
-  const e = {};
-  await dynamicPrompt('project', e, userConfigPrefs);
-  await dynamicPrompt('issueType', e, userConfigPrefs);
 
-  if (e['issueType']?.subtask === true)
-    await dynamicPrompt('parentTask', e, userConfigPrefs);
+  userConfigPrefs.cache = await cache.get();
 
-  await dynamicPrompt('details', e, userConfigPrefs);
 
+  const e: UserAnswersObject = {};
+
+  await projectPrompt(e, userConfigPrefs);
+  // await dynamicPrompt('project', e, userConfigPrefs);
+
+  await issueTypePrompt(e);
+  // await dynamicPrompt('issueType', e, userConfigPrefs);
+
+  if (e.issueType?.subtask === true)
+    await parentTaskPrompt(e, userConfigPrefs);
+  // await dynamicPrompt('parentTask', e, userConfigPrefs);
+
+
+  const epics: SearchResult = await client.issueSearch.searchForIssuesUsingJqlGet({ jql: `project=${e['project']['id']} AND issueType = "Epic" AND status != "Done"` });
+  if (!e['parentTask'] && (await inquirer.prompt({
+    name: 'epicChild',
+    type: 'confirm',
+    default: true
+  })).epicChild === true) {
+    const epicParent = await inquirer.prompt({
+      type: 'list',
+      choices: epics.issues.map(x => ({ name: x.fields.summary, value: x })),
+      default: userConfigPrefs.cache['recent']['epic']['fields']['summary'] ?? undefined,
+      name: 'epicParentAnswer'
+    });
+    e.epicParent = epicParent.epicParentAnswer;
+  }
+  await askIssueSummaryAndDetails(e);
+  // await dynamicPrompt('details', e, userConfigPrefs);
+  const currentUser: UserInfo = await client.myself.getCurrentUser();
+  const assignee = await inquirer.prompt({
+    name: 'assignee',
+    type: 'list',
+    choices: [{ name: currentUser.name ?? currentUser.emailAddress, value: currentUser }],
+    default: currentUser.name ?? currentUser.emailAddress
+  });
+  e.assignee = assignee.assignee;
   // getCreateMeta not working atm
   // await dynamicPrompt('additional', e, userConfigPrefs);
 
-
   const requestFieldsObject = {
     project: {
-      id: e['project'].id
+      id: e.project.id
     },
     assignee: {
-      name: (await client.myself.getCurrentUser())['name']
+      id: e.assignee.accountId
     },
-    summary: e['summary'],
+    summary: e.summary,
     issuetype: {
-      id: e['issueType'].id
+      id: e.issueType.id
     },
-    description: e['description']
+    description: e.description
   };
-  if (e.hasOwnProperty('parentTask'))
-    requestFieldsObject['parentTask'] = { id: e['parentTask'].id };
+  if (e.parentTask)
+    requestFieldsObject['parent'] = { id: e.parentTask.id };
+  else if (e.epicParent)
+    requestFieldsObject['parent'] = { id: e.epicParent };
   try {
     const response = await client.issues.createIssue({ fields: requestFieldsObject });
     console.debug(response);
-
+    await cache.set({ recent: { project: e.project, epic: e.epicParent } });
   } catch (e) {
     console.error(e);
   }

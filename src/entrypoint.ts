@@ -82,22 +82,22 @@ export default (async () => {
     .command('start <issue>')
     .description('Start working on an issue.')
     .action(issue => {
-      transitions.start(issue, finalCb);
+      transitions().start(issue, finalCb);
     });
   program
     .command('stop <issue>')
     .description('Stop working on an issue.')
     .action(issue => {
-      transitions.stop(issue, finalCb);
+      transitions().stop(issue, finalCb);
     });
   program
     .command('review <issue> [assignee]')
     .description('Mark issue as being reviewed [by assignee(optional)].')
     .action((issue, assignee) => {
-      transitions.review(issue, finalCb);
+      transitions().review(issue, finalCb);
 
       if (assignee) {
-        assign.to(issue, assignee);
+        assign().to(issue, assignee);
       }
     });
   program
@@ -110,20 +110,20 @@ export default (async () => {
         worklog.add(issue, options.timeSpent, 'auto worklog', new Date());
       }
 
-      transitions.done(issue, options.resolution, finalCb);
+      transitions().done(issue, options.resolution, finalCb);
     });
   program
     .command('invalid <issue>')
     .description('Mark issue as finished.')
     .action((issue, options) => {
-      transitions.invalid(issue, options, finalCb);
+      transitions().invalid(issue, options, finalCb);
     });
   program
     .command('mark <issue> [transitionId]')
     .description('Mark issue as.')
     .action((issue, transitionId) => {
       if (transitionId) { // if a transitionId is provided, go straight to transitioning the story
-        transitions.doTransition(issue, transitionId, err => {
+        transitions().doTransition(issue, transitionId, err => {
           if (err && err.includes('(502)')) { // if we get a 502 it's most likely because the transition isn't valid
             console.log('transition (' + transitionId + ') not valid for this issue (' + issue + ')');
           } else {
@@ -132,7 +132,7 @@ export default (async () => {
           finalCb(err);
         });
       } else {
-        transitions.makeTransition(issue, finalCb);
+        transitions().makeTransition(issue, finalCb);
       }
     });
   program
@@ -190,9 +190,9 @@ export default (async () => {
     .action((issue, user) => {
       if (user) {
         user = config.user_alias[user] || user;
-        assign.to(issue, user);
+        assign().to(issue, user);
       } else {
-        assign.me(issue);
+        assign().me(issue);
       }
     });
   program
@@ -222,9 +222,9 @@ export default (async () => {
             return tag;
           }
         });
-        comment.to(issue, text);
+        comment().to(issue, text);
       } else {
-        comment.show(issue);
+        comment().show(issue);
       }
     });
   program
@@ -310,7 +310,7 @@ export default (async () => {
     .option('-v --verbose', 'Verbose debugging output')
     .action((key, options) => {
       options.key = key;
-      newCreate.create(options, finalCb);
+      newCreate().create(options, finalCb);
     });
   program
     .command('config')
@@ -358,9 +358,9 @@ export default (async () => {
     .option('-j, --jql <jql> ', 'jql of the issues which you want to add to the sprint', String)
     .action(function(options) {
       if (options.add) {
-        addToSprint.addIssuesViaKey(options, finalCb);
+        addToSprint().addIssuesViaKey(options, finalCb);
       } else if (options.jql) {
-        addToSprint.addAllJqlToSprint(options, finalCb);
+        addToSprint().addAllJqlToSprint(options, finalCb);
       } else {
         sprint(options.rapidboard, options.sprint, finalCb);
       }

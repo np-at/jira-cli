@@ -1,5 +1,4 @@
 /* eslint-disable max-depth */
-/*global requirejs,console,define,fs*/
 
 import sslRequest from '../ssl_request';
 

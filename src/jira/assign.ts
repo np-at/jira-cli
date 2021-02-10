@@ -5,7 +5,8 @@ import utils from '../utils';
 
 import config from '../config';
 
-export default (() => {
+
+export default function assign() {
   const assign = {
     query: null,
     table: null,
@@ -24,9 +25,9 @@ export default (() => {
           return console.log('Issue [' + ticket + '] assigned to ' + assignee + '.');
         });
     },
-    me: function (ticket) {
+    me: function(ticket) {
       this.to(ticket, config.auth.user);
     }
   };
   return assign;
-})();
+}

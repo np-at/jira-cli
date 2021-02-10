@@ -1,11 +1,11 @@
-
 import readline from 'readline';
 
 import sslRequest from './ssl_request';
 
 import config from './config';
 
-export default (() => {
+
+export default function prompt() {
 
   const getUserCompletions = function getUserCompletions(line, word, options, cb) {
     const userOptions = options && options.user ? options.user : {},
@@ -77,4 +77,4 @@ export default (() => {
       cb(answer);
     });
   };
-})();
+}

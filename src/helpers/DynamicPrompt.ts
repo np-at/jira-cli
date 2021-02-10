@@ -1,5 +1,7 @@
-import {client} from './helpers';
-import inquirer, {QuestionCollection} from 'inquirer';
+import { client } from './helpers';
+import inquirer, { QuestionCollection } from 'inquirer';
+import { UserAnswersObject } from '../jira/create';
+import { IssueResponse } from 'jira-connector/types/api';
 
 export interface JiraIssueType {
   self: string,
@@ -69,19 +71,123 @@ export interface Roles {
   Member?: string;
 }
 
-export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status' | 'priority' | 'details' | 'parentTask' | 'additional' | string, currentOptionsObject: Record<string, string>, predefinedOptions?: Record<string, unknown>): Promise<void> {
+
+export const additionalFields = async (currentAnswers: UserAnswersObject) => {
+  if (!currentAnswers.project) throw new Error();
+  const availableFields = await getAdditionalFields(currentAnswers);
+  const questions: QuestionCollection = [];
+// TODO: this
+};
+const getAdditionalFields = async (currentAnswers: UserAnswersObject): Promise<Record<string, unknown>[]> => {
+  const createMeta = await client.issues.getCreateIssueMetadata({
+    projectKeys: [currentAnswers.project['key']],
+    issuetypeIds: [currentAnswers.issueType['id']],
+    expand: 'projects,issuetypes,fields,projects.issuetypes.fields'
+  });
+  return createMeta.projects[0].issueTypes[0].fields.map(x => x.fields);
+};
+
+
+export const askIssueSummaryAndDetails = async (currentAnswers: UserAnswersObject): Promise<void> => {
+  const detailQuestions: inquirer.QuestionCollection = [
+    {
+      name: 'summary',
+      message: 'enter the issue summary',
+      type: 'input',
+      validate: (input: any, answers?) => {
+        return input.trim();
+      }
+    },
+    {
+      name: 'description',
+      type: 'input',
+      message: 'Enter the issue details'
+    }];
+  const answers = await inquirer.prompt(detailQuestions);
+  currentAnswers.summary = answers.summary;
+  currentAnswers.description = answers.description;
+};
+
+export const projectPrompt = async (currentAnswers: UserAnswersObject, defaultProject?: string | JiraProject): Promise<void> => {
+  const projects = [...new Set((await client.projects.getAllProjects({ expand: 'issueTypes' })))].map(x => ({
+    name: x['name'],
+    value: x
+  }));
+  const question: QuestionCollection = {
+    // @ts-ignore
+    type: 'autocomplete',
+    name: 'project',
+    choices: projects,
+    source: () => Promise.resolve(projects),
+    message: 'choose a project',
+    default: (defaultProject && typeof defaultProject !== 'string') ? defaultProject.name : null
+  };
+
+  const answer = await inquirer.prompt(question);
+  currentAnswers.project = answer.project;
+
+  // return projects.find(x => x.name === answer.project);
+};
+export const getIssueSuggestions = async (currentInput: string, project: JiraProject): Promise<Array<IssueResponse>> => {
+  const response = await client.issueSearch.getIssuePickerSuggestions({
+    query: currentInput,
+    currentProjectId: project.id
+  });
+  return response.sections.flatMap(x => x.issues).filter(x => x.status !== 'Done');
+};
+export const parentTaskPrompt = async (currentAnswers: UserAnswersObject, userPreferences?: Record<string, unknown>): Promise<void> => {
+  if (!currentAnswers.project) throw new Error('parent project must be selected before choosing a parent task');
+  const tasksList = (await getIssueSuggestions('', currentAnswers.project)).map(x => ({
+    name: x['summary'] ?? 'unk',
+    value: x
+  }));
+  const answer = await inquirer.prompt({
+    // @ts-ignore
+    type: 'autocomplete',
+    name: 'parentTask',
+    choices: tasksList,
+    message: 'Choose parent task?',
+    source: async (answersSoFar, input) => {
+      return (await getIssueSuggestions(input, currentAnswers.project)).map(x => ({ name: x['summary'], value: x }));
+    }
+
+  });
+  currentAnswers.parentTask = answer.parentTask;
+
+};
+export const issueTypePrompt = async (currentAnswers: UserAnswersObject): Promise<void> => {
+  const issueTypes: IssueType[] = [];
+  // check if parent project contains issueType information (use it if so)
+  if (currentAnswers.project) issueTypes.push(...currentAnswers.project.issueTypes);
+  else throw new ReferenceError('parent project missing in answers object');
+
+  const answer = await inquirer.prompt({
+    type: 'list',
+    choices: [...(new Set(issueTypes))].map(x => {
+      return { name: x.name, value: x };
+    }),
+    message: 'choose an issue type',
+    name: 'issueType'
+
+  });
+  // chenging the property allows us to modify the options object in the calling context
+  currentAnswers.issueType = answer.issueType;
+
+};
+
+export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status' | 'priority' | 'details' | 'parentTask' | 'additional' | string, currentOptionsObject: UserAnswersObject, predefinedOptions?: Record<string, unknown>): Promise<void> {
   switch (fieldName) {
     case 'issueType':
       // if (!currentOptionsObject['project']) throw new TypeError('Project reference required');
       try {
-        return await issueTypePrompt(currentOptionsObject['parent'], currentOptionsObject);
+        return await issueTypePrompt(currentOptionsObject);
       } catch (e) {
         console.error(e);
       }
       break;
     case 'project':
       try {
-        return await projectPrompt(currentOptionsObject, null);
+        return await projectPrompt(currentOptionsObject, predefinedOptions['cache']['recent']['project']);
       } catch (e) {
         console.log(e);
       }
@@ -92,7 +198,7 @@ export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status
       break;
     case 'details':
       try {
-        return await issueDetails(currentOptionsObject);
+        return await askIssueSummaryAndDetails(currentOptionsObject);
       } catch (e) {
         console.error(e);
       }
@@ -116,118 +222,3 @@ export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status
 
   }
 }
-
-const additionalFields = async (currentAnswers: Record<string, unknown>) => {
-  if (!currentAnswers.project) throw new Error();
-  const availableFields = await getAdditionalFields(currentAnswers);
-  const questions: QuestionCollection = [];
-// TODO: this
-};
-const getAdditionalFields = async (currentAnswers: Record<string, unknown>): Promise<object[]> => {
-  const createMeta = await client.issues.getCreateIssueMetadata({
-    projectKeys: [currentAnswers.project['key']],
-    issuetypeIds: [currentAnswers.issueType['id']],
-    expand: 'projects,issuetypes,fields,projects.issuetypes.fields'
-  });
-  return createMeta.projects[0].issueTypes[0].fields.map(x => x.fields);
-};
-
-
-const issueDetails = async (currentAnswers: Record<string, unknown>) => {
-  const detailQuestions: inquirer.QuestionCollection = [
-    {
-      name: 'summary',
-      message: 'enter the issue summary',
-      type: 'input'
-    },
-    {
-      name: 'description',
-      type: 'input',
-      message: 'Enter the issue details'
-    }];
-  const answers = await inquirer.prompt(detailQuestions);
-  currentAnswers.summary = answers.summary;
-  currentAnswers.description = answers.description;
-}
-;
-
-const projectPrompt = async (currentAnswers: Record<string, unknown>, defaultProject?: string | JiraProject) => {
-  const projects = (await client.projects.getAllProjects({expand: 'issueTypes'})).map(x => ({
-    name: x.name,
-    value: x
-  }));
-  const answer = await inquirer.prompt({
-    // @ts-ignore
-    type: 'autocomplete',
-    name: 'project',
-    choices: projects,
-    source: () => Promise.resolve(projects),
-    message: 'choose a project'
-  });
-  currentAnswers.project = answer.project;
-
-  // return projects.find(x => x.name === answer.project);
-};
-const fillSuggestions = async (currentInput: string, project) => {
-  const response = await client.issueSearch.getIssuePickerSuggestions({
-    query: currentInput,
-    currentProjectId: project.id
-  });
-  return response.sections.flatMap(x => x.issues).filter(x => x.status !== 'Done');
-};
-const parentTaskPrompt = async (currentAnswers: Record<string, unknown>, userPreferences?: Record<string, unknown>) => {
-  if (!currentAnswers.project) throw new Error('parent project must be selected before choosing a parent task');
-  const tasksList = (await fillSuggestions('', currentAnswers.project)).map(x => ({
-    name: x['summary'] ?? 'unk',
-    value: x
-  }));
-  const answer = await inquirer.prompt({
-    // @ts-ignore
-    type: 'autocomplete',
-    name: 'parentTask',
-    choices: tasksList,
-    message: 'Choose parent task?',
-    source: async (answersSoFar, input) => {
-      return (await fillSuggestions(input, currentAnswers.project)).map(x => ({name: x['summary'], value: x}));
-    }
-    // validate: async input => {
-    //   // const response = await fillSuggestions(input, currentAnswers.project);
-    //   // tasksList = response.map(x => ({ name: x['summary'], value: x }));
-    //   if (!input)
-    //     return 'no input';
-    //   // return tasksList.length > 0;
-    //   return true;
-    // }
-
-  });
-  currentAnswers.parentTask = answer.parentTask;
-
-};
-const issueTypePrompt = async (parentProject: string | { issueTypes: any[] }, currentAnswers: Record<string, unknown>) => {
-  const issueTypes: JiraIssueType[] = [];
-
-  // check if parent project contains issueType information (use it if so)
-  if (currentAnswers.project) issueTypes.push(...currentAnswers.project['issueTypes']);
-  else if (parentProject && parentProject.hasOwnProperty('issueTypes')) issueTypes.push(...parentProject['issueTypes']);
-  else if (typeof parentProject === 'string') {
-
-    const project = await client.projects.getProject({projectIdOrKey: parentProject});
-    issueTypes.push(...project.issueTypes);
-
-  }
-
-
-  const answer = await inquirer.prompt({
-    type: 'list',
-    choices: [...(new Set(issueTypes))].map(x => {
-      return {name: x.name, value: x};
-    }),
-    message: 'choose an issue type',
-    name: 'issueType'
-
-  });
-  // chenging the property allows us to modify the options object in the calling context
-  currentAnswers.issueType = answer.issueType;
-
-  // return ist.find(x => x.name === choice.name);
-};

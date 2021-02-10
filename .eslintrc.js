@@ -1,17 +1,17 @@
 module.exports = {
   env: {
     es6: true,
-    node: true,
+    node: true
   },
-  ignorePatterns: ["lib/**","libx/**"],
+  ignorePatterns: ['lib/**', 'libx/**'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     // Allows for the parsing of modern ECMAScript features
     ecmaVersion: 2020,
     // Allows for the use of imports
-    sourceType: 'module',
+    sourceType: 'module'
   },
-  extends: ['plugin:@typescript-eslint/recommended',
+  extends: ['plugin:@typescript-eslint/recommended'
   ],
   globals: {},
   rules: {

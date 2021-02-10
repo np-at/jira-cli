@@ -12,9 +12,10 @@
     "start": "npm i -g && jira",
     "clean:dev": "rimraf -rf ./.jira-cli",
     "clean": "rimraf -rf ~/.jira-cli && npm uninstall jira-cli -g",
-    "lint": "eslint . --ext .js,.ts --ignore-path .gitignore",
+    "lint": "eslint . --ext .ts --ignore-path .gitignore",
     "fix": "npm run lint -- --fix",
-    "build": "rimraf lib/* && tsc -p ."
+    "build": "rimraf lib/* && tsc -p .",
+    "localinstall": "npm run clean && npm run build && npm install -g ./"
   },
   "dependencies": {
     "alasql": "^0.6.5",
@@ -69,15 +70,15 @@
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.25",
     "@types/superagent": "^4.1.10",
-    "@typescript-eslint/eslint-plugin": "^4.14.2",
-    "@typescript-eslint/parser": "^4.14.2",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
     "ava": "^3.15.0",
     "eslint": "^7.19.0",
-    "husky": "^4.3.8",
+    "husky": "^5.0.9",
     "jest": "^26.6.3",
     "rimraf": "^3.0.2",
     "testr": "0.0.5",
     "ts-node": "^9.1.1",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.4"
   }
 }
