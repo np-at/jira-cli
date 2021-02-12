@@ -108,11 +108,26 @@ export const askIssueSummaryAndDetails = async (currentAnswers: UserAnswersObjec
   currentAnswers.description = answers.description;
 };
 
-export const projectPrompt = async (currentAnswers: UserAnswersObject, defaultProject?: string | JiraProject): Promise<void> => {
-  const projects = [...new Set((await client.projects.getAllProjects({ expand: 'issueTypes' })))].map(x => ({
+export const projectPrompt = async (currentAnswers: UserAnswersObject,  userConfigPreferences: Record<string, unknown>): Promise<void> => {
+  let projects = [...new Set((await client.projects.getAllProjects({ expand: 'issueTypes' })))].map(x => ({
     name: x['name'],
     value: x
   }));
+
+  // if recent project exists in the cache, put that at the top of the prompt list
+  const defaultChoice = userConfigPreferences?.cache?.['recent']?.['project']?.['name'];
+  if (defaultChoice)  {
+    projects = projects.sort((a, b)=> {
+      if (a.name === defaultChoice)
+        return -1;
+      else if (b.name === defaultChoice)
+        return 1;
+      else
+        return 0;
+    });
+  }
+
+  // 'default' param doesn't work for list type prompts
   const question: QuestionCollection = {
     // @ts-ignore
     type: 'autocomplete',
@@ -120,13 +135,12 @@ export const projectPrompt = async (currentAnswers: UserAnswersObject, defaultPr
     choices: projects,
     source: () => Promise.resolve(projects),
     message: 'choose a project',
-    default: (defaultProject && typeof defaultProject !== 'string') ? defaultProject.name : null
+    loop: false
   };
 
   const answer = await inquirer.prompt(question);
   currentAnswers.project = answer.project;
 
-  // return projects.find(x => x.name === answer.project);
 };
 export const getIssueSuggestions = async (currentInput: string, project: JiraProject): Promise<Array<IssueResponse>> => {
   const response = await client.issueSearch.getIssuePickerSuggestions({

@@ -30,7 +30,7 @@
     "jira-connector": "^3.1.0",
     "jira.js": "^1.8.0",
     "moment": "^2.29.1",
-    "nodemailer": "^6.4.17",
+    "nodemailer": "^6.4.18",
     "omelette": "^0.4.15-1",
     "openurl": "^1.1.1",
     "qs": "^6.9.6",
@@ -69,7 +69,7 @@
     "@types/commander": "^2.12.2",
     "@types/inquirer": "^7.3.1",
     "@types/jest": "^26.0.20",
-    "@types/node": "^14.14.25",
+    "@types/node": "^14.14.27",
     "@types/omelette": "^0.4.1",
     "@types/superagent": "^4.1.10",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
@@ -81,6 +81,6 @@
     "rimraf": "^3.0.2",
     "testr": "0.0.5",
     "ts-node": "^9.1.1",
-    "typescript": "^4.1.4"
+    "typescript": "^4.1.5"
   }
 }

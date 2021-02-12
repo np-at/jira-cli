@@ -39,7 +39,7 @@ export const lsCommand = (prog: commander.Command, extCallback: (err: any, resul
         extCallback(err, results);
       }
 
-    });
+    })
 };
 export const getDefaultCreate = async (meta?): Promise<unknown> => {
   const askfields = config['default_create']['__always_ask']['fields'];
