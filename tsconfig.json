@@ -9,7 +9,7 @@
       "es2020"
     ],
     "esModuleInterop": true,
-    "outDir": "tsc_output",
+    "outDir": "lib",
     "moduleResolution": "node",
     "removeComments": true,
     "emitBOM": true

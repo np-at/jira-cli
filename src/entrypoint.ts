@@ -30,7 +30,8 @@ import edit from './jira/edit';
 import pkg from '../package.json';
 import addJiraCreateCommand from './jira/create';
 import * as os from 'os';
-import { client } from './helpers/helpers';
+import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
+import CacheObject from './helpers/cache';
 
 
 export interface jiraclCreateOptions {
@@ -47,15 +48,6 @@ export interface jiraclCreateOptions {
 
 }
 
-export async function issuePickerCompletionAsync(...args) {
-  try {
-    const issueSuggestions = await client.issueSearch.getIssuePickerSuggestions({ query: args[1]?.args?.join(' ') ?? '' });
-    console.log(issueSuggestions.sections.flatMap(x => x.issues).map(x => String(`${x.key}|*|${x.summary}`)).join(os.EOL));
-    return;
-  } catch (e) {
-    console.error(e);
-  }
-}
 export default (async () => {
   function finalCb(err, results?: any) {
     if (err) {
@@ -69,6 +61,7 @@ export default (async () => {
 
 
   const program = new Command().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
+
   program.version(pkg.version);
   lsCommand(program, finalCb);
   program.command('_complete [cursorPos] [commandAst] [wordToComplete]').action(async (...args) => {

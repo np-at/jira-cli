@@ -6,9 +6,8 @@ import config from '../config';
 
 import { ask } from '../common';
 
-import inquirer from 'inquirer';
+import { prompt } from 'inquirer';
 
-const prompt = inquirer.createPromptModule();
 export default (() => {
   const editMeta = {
     ask: function(question: any, callback: (arg) => void, yesno?: any, values?: any[], answer?: boolean) {
@@ -39,7 +38,7 @@ export default (() => {
       }
 
       let match;
-      prompt({ message: question }).then((answer) =>{
+      prompt({ message: question }).then((answer) => {
         debugger;
 
         if ((answer as string).length > 0) {

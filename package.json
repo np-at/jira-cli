@@ -14,9 +14,8 @@
     "clean": "rimraf -rf ~/.jira-cli && npm uninstall jira-cli -g",
     "lint": "eslint . --ext .ts --ignore-path .gitignore",
     "fix": "npm run lint -- --fix",
-    "build": "rimraf lib/* tsc_output/* && tsc -p . && npm run terse",
-    "localinstall": "npm run clean && npm run build && npm install -g ./",
-    "terse": "ts-node ./terserMinify.ts"
+    "build": "rimraf lib/* && tsc -p .",
+    "localinstall": "npm run clean && npm run build && npm install -g ./"
   },
   "dependencies": {
     "alasql": "^0.6.5",
@@ -32,7 +31,6 @@
     "jira.js": "^1.8.0",
     "moment": "^2.29.1",
     "nodemailer": "^6.4.18",
-    "omelette": "^0.4.15-1",
     "openurl": "^1.1.1",
     "qs": "^6.9.6",
     "strip-json-comments": "^3.1.1",
@@ -71,7 +69,6 @@
     "@types/inquirer": "^7.3.1",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.27",
-    "@types/omelette": "^0.4.1",
     "@types/superagent": "^4.1.10",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
@@ -80,7 +77,6 @@
     "husky": "^5.0.9",
     "jest": "^26.6.3",
     "rimraf": "^3.0.2",
-    "terser": "^5.6.0",
     "testr": "0.0.5",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"

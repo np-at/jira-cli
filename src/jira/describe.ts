@@ -8,10 +8,10 @@ import url from 'url';
 
 import config from '../config';
 import commander from 'commander';
-import { issuePickerCompletionAsync } from '../entrypoint';
 import { client } from '../helpers/helpers';
 import { IssueResponse } from 'jira-connector/types/api';
 import * as os from 'os';
+import { issuePickerCompletionAsync } from '../helpers/CompletionHelpers';
 
 export const addDescribeCommand = (prog: commander.Command) => {
   prog
@@ -55,7 +55,7 @@ const displayIssueDetails = (iss: IssueResponse) => {
     'Subtasks': iss.fields.subtasks.length
   });
   console.log(table.toString());
-  console.log(iss.fields.description);
+  console.log(iss.fields.description ?? 'No Description');
   const width = process.stdout.getWindowSize();
   const a = new Array(width[0] - 20).fill('-', 0).join('');
   console.log(a);

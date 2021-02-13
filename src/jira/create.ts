@@ -11,7 +11,7 @@ import {
   JiraProject,
   parentTaskPrompt,
   projectPrompt
-} from '../helpers/DynamicPrompt';
+} from '../helpers/PromptHelpers';
 
 import inquirer_autocomplete_prompt from 'inquirer-autocomplete-prompt';
 import Cache from '../helpers/cache';
@@ -71,7 +71,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   //override preferences and merge with any explicitly defined cli parameters
   Object.assign(userConfigPrefs, options);
 
-  userConfigPrefs.cache = await cache.get();
+  userConfigPrefs.cache = cache.recent;
 
 
   const e: UserAnswersObject = {};
@@ -140,7 +140,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   try {
     const response = await client.issues.createIssue({ fields: requestFieldsObject });
     console.debug(response);
-    await cache.set({ recent: { project: e.project, epic: e.epicParent } });
+    cache.recent = { project: e.project, epic: e.epicParent };
   } catch (e) {
     console.error(e);
   }

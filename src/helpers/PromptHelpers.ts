@@ -189,50 +189,50 @@ export const issueTypePrompt = async (currentAnswers: UserAnswersObject): Promis
 
 };
 
-export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status' | 'priority' | 'details' | 'parentTask' | 'additional' | string, currentOptionsObject: UserAnswersObject, predefinedOptions?: Record<string, unknown>): Promise<void> {
-  switch (fieldName) {
-    case 'issueType':
-      // if (!currentOptionsObject['project']) throw new TypeError('Project reference required');
-      try {
-        return await issueTypePrompt(currentOptionsObject);
-      } catch (e) {
-        console.error(e);
-      }
-      break;
-    case 'project':
-      try {
-        return await projectPrompt(currentOptionsObject, predefinedOptions['cache']['recent']['project']);
-      } catch (e) {
-        console.log(e);
-      }
-      break;
-    case 'status':
-      break;
-    case 'priority':
-      break;
-    case 'details':
-      try {
-        return await askIssueSummaryAndDetails(currentOptionsObject);
-      } catch (e) {
-        console.error(e);
-      }
-      break;
-    case 'parentTask':
-      try {
-        return await parentTaskPrompt(currentOptionsObject, predefinedOptions);
-      } catch (e) {
-        console.error(e);
-      }
-      break;
-    case 'additional':
-      try {
-        return await additionalFields(currentOptionsObject);
-      } catch (e) {
-        console.error(e);
-      }
-      break;
-    default:
-      break;
-
-  }
-}
+// export async function dynamicPrompt(fieldName: 'issueType' | 'project' | 'status' | 'priority' | 'details' | 'parentTask' | 'additional' | string, currentOptionsObject: UserAnswersObject, predefinedOptions?: Record<string, unknown>): Promise<void> {
+//   switch (fieldName) {
+//     case 'issueType':
+//       // if (!currentOptionsObject['project']) throw new TypeError('Project reference required');
+//       try {
+//         return await issueTypePrompt(currentOptionsObject);
+//       } catch (e) {
+//         console.error(e);
+//       }
+//       break;
+//     case 'project':
+//       try {
+//         return await projectPrompt(currentOptionsObject, predefinedOptions['cache']['recent']['project']);
+//       } catch (e) {
+//         console.log(e);
+//       }
+//       break;
+//     case 'status':
+//       break;
+//     case 'priority':
+//       break;
+//     case 'details':
+//       try {
+//         return await askIssueSummaryAndDetails(currentOptionsObject);
+//       } catch (e) {
+//         console.error(e);
+//       }
+//       break;
+//     case 'parentTask':
+//       try {
+//         return await parentTaskPrompt(currentOptionsObject, predefinedOptions);
+//       } catch (e) {
+//         console.error(e);
+//       }
+//       break;
+//     case 'additional':
+//       try {
+//         return await additionalFields(currentOptionsObject);
+//       } catch (e) {
+//         console.error(e);
+//       }
+//       break;
+//     default:
+//       break;
+//
+//   }
+// }
