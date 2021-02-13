@@ -7,6 +7,62 @@ import openurl from 'openurl';
 import url from 'url';
 
 import config from '../config';
+import commander from 'commander';
+import { issuePickerCompletionAsync } from '../entrypoint';
+import { client } from '../helpers/helpers';
+import { IssueResponse } from 'jira-connector/types/api';
+import * as os from 'os';
+
+export const addDescribeCommand = (prog: commander.Command) => {
+  prog
+    .command('show <issue>')
+    .description('Show info about an issue')
+    .option('-o, --output <field>', 'Output field content', String)
+    .action(async (issue, options) => {
+      try {
+        const curIssue = await client.issues.getIssue({ issueIdOrKey: issue, fields: ['*all'] });
+        displayIssueDetails(curIssue);
+      } catch (e) {
+        console.error(e);
+      }
+    }).command('_complete')
+    .action(issuePickerCompletionAsync);
+};
+
+const displayIssueDetails = (iss: IssueResponse) => {
+
+  const table = new Table();
+  const comments = iss.fields.comment.comments.map(x => {
+    return String(x.body.toString() + '--' + x.author.displayName);
+  }).join(os.EOL);
+  table.push({
+    'Issue': iss.key
+  }, {
+    'Summary': iss.fields.summary
+  }, {
+    'Type': iss.fields.issuetype.name
+  }, {
+    'Priority': iss.fields.priority.name
+  }, {
+    'Status': iss.fields.status.name
+  }, {
+    'Reporter': iss.fields.reporter.displayName + ' <' + iss.fields.reporter.emailAddress + '> '
+  }, {
+    'Assignee': (iss.fields.assignee ? iss.fields.assignee.displayName : 'Not Assigned') + ' <' + (iss.fields.assignee ? iss.fields.assignee.emailAddress : '') + '> '
+  }, {
+    'Labels': iss.fields.labels ? iss.fields.labels.join(', ') : ''
+  }, {
+    'Subtasks': iss.fields.subtasks.length
+  });
+  console.log(table.toString());
+  console.log(iss.fields.description);
+  const width = process.stdout.getWindowSize();
+  const a = new Array(width[0] - 20).fill('-', 0).join('');
+  console.log(a);
+  console.log(iss.fields.comment.comments.map(x => {
+    return String('---------------------' + os.EOL + x.updated.toString() + os.EOL + x.body.toString() + os.EOL + '  ' + x.author.displayName);
+  }).join(os.EOL));
+};
 
 export default (() => {
   const describe = {
@@ -14,7 +70,7 @@ export default (() => {
     priority: null,
     table: null,
     getIssueField: function(field) {
-      sslRequest.get(config.auth.url + this.query + '?fields=' + field).end((err, res) => {
+      sslRequest.get(config.auth.url + this.query + '?fields=' + field ?? '*all').end((err, res) => {
         if (!res.ok) {
           return console.log(res);
         }

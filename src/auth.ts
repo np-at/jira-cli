@@ -5,27 +5,7 @@ import config, { Auth } from './config';
 const prompt = inquirer.createPromptModule();
 export default {
   answers: {},
-  ask: function(question: string, callback: (args) => void, password?: boolean): void {
-
-    if (password) {
-      prompt({ type: 'password', message: question })
-        .then((answer) => {
-          if ((answer as string).length > 0) {
-            callback(answer);
-          } else {
-            this.ask(question, callback, true);
-          }
-        });
-    } else {
-      prompt({ message: question }).then(function(answer) {
-        if ((answer as string).length > 0) {
-          callback(answer);
-        } else {
-          this.ask(question, callback);
-        }
-      });
-    }
-  },
+  ask: ask,
   setup(options): void {// Does your config file exist
 
     if (!config.isLoaded()) {
@@ -85,3 +65,25 @@ export default {
     }
   }
 };
+
+function ask(question: string, callback: (args) => void, password?: boolean): void {
+
+  if (password) {
+    prompt({ type: 'password', message: question })
+      .then((answer) => {
+        if ((answer as string).length > 0) {
+          callback(answer);
+        } else {
+          this.ask(question, callback, true);
+        }
+      });
+  } else {
+    prompt({ message: question }).then(function(answer) {
+      if ((answer as string).length > 0) {
+        callback(answer);
+      } else {
+        this.ask(question, callback);
+      }
+    });
+  }
+}

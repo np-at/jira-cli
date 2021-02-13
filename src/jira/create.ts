@@ -1,4 +1,3 @@
-import utils from '../utils';
 import inquirer from 'inquirer';
 import { jiraclCreateOptions } from '../entrypoint';
 import commander from 'commander';
@@ -89,15 +88,21 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
 
 
   const epics: SearchResult = await client.issueSearch.searchForIssuesUsingJqlGet({ jql: `project=${e['project']['id']} AND issueType = "Epic" AND status != "Done"` });
+  const defaultEpic = userConfigPrefs.cache['recent']?.['epic']?.['fields']?.['summary'] ?? undefined;
   if (!e['parentTask'] && (await inquirer.prompt({
     name: 'epicChild',
     type: 'confirm',
     default: true
   })).epicChild === true) {
+
     const epicParent = await inquirer.prompt({
       type: 'list',
-      choices: epics.issues.map(x => ({ name: x.fields.summary, value: x })),
-      default: userConfigPrefs.cache['recent']?.['epic']?.['fields']?.['summary'] ?? undefined,
+      choices: epics.issues.map(x => ({ name: x.fields.summary, value: x })).sort((a, b) => {
+        if (!defaultEpic) return 0;
+        if (a.name === defaultEpic) return -1;
+        else if (b.name === defaultEpic) return 1;
+        else return 0;
+      }),
       name: 'epicParentAnswer'
     });
     e.epicParent = epicParent.epicParentAnswer;
@@ -163,197 +168,197 @@ const parseNewOptions = async (options: jiraclCreateOptions) => {
   return project;
 };
 
-
-function creation(jira) {
-  const create = {
-    query: null,
-    table: null,
-    isSubTask: false,
-    projects: [],
-    priorities: [],
-    answers: {
-      fields: {}
-    },
-    ask: function(question, callback, yesno, values, answer) {
-      let that = this,
-        options = {},
-        issueTypes = [],
-        i = 0;
-
-      if (answer || answer === false) {
-        return callback(answer);
-      }
-
-      if (values && values.length > 0) {
-        for (i; i < values.length; i++) {
-          if (that.isSubTask) {
-            if (values[i].subtask !== undefined) {
-              if (values[i].subtask) {
-                issueTypes.push('(' + values[i].id + ') ' + values[i].name);
-              }
-            } else {
-              issueTypes.push('(' + values[i].id + ') ' + values[i].name);
-            }
-          } else {
-            if (!values[i].subtask) {
-              issueTypes.push('(' + values[i].id + ') ' + values[i].name);
-            }
-          }
-        }
-
-        console.log(issueTypes.join('\n'));
-      }
-
-      inquirer.prompt({ message: question, name: question }, function(answer) {
-        if (answer.length > 0) {
-          callback(answer);
-        } else {
-          if (yesno) {
-            callback(false);
-          } else {
-            that.ask(question, callback);
-          }
-        }
-      });
-    },
-    askProject: function(project, callback) {
-      let that = this,
-        i = 0;
-      this.ask('Type the project name or key: ', function(answer) {
-        let projectId = 0,
-          index = 0;
-        answer = answer.charAt(0).toUpperCase() + answer.substring(1).toLowerCase();
-
-        for (i; i < that.projects.length; i++) {
-          if (answer == that.projects[i].key || answer.toUpperCase() == that.projects[i].key) {
-            projectId = that.projects[i].id;
-            index = i;
-          } else if (answer == that.projects[i].name) {
-            projectId = that.projects[i].id;
-            index = i;
-          }
-        }
-
-        if (projectId > 0) {
-          callback(projectId, index);
-        } else {
-          console.log('Project "' + answer + '" does not exists.');
-          that.askProject(project, callback);
-        }
-      }, null, null, project);
-    },
-    askSubTask: function(subtask, callback) {
-      const that = this;
-      that.ask('Type the parent task key (only the numbers) if exists, otherwise press enter: ', function(answer) {
-        if (answer === false || parseInt(answer) > 0) {
-          that.isSubTask = answer ? true : false;
-          callback(answer);
-        } else {
-          console.log('Please, type only the task number (ex: if issue is "XXX-324", type only "324").');
-          that.askSubTask(subtask, callback);
-        }
-      }, true, null, subtask);
-    },
-    askIssueType: function(type, callback) {
-      const that = this,
-        issueTypeArray = that.project.issuetypes;
-      that.ask('Select issue type: ', function(issueType) {
-        callback(issueType);
-      }, false, issueTypeArray, type);
-    },
-    askIssuePriorities: function(priority, callback) {
-      const that = this,
-        issuePriorities = that.priorities;
-      that.ask('Select the priority: ', function(issuePriority) {
-        callback(issuePriority);
-      }, false, issuePriorities, priority);
-    },
-    newIssue: function(projIssue: string, options: jiraclCreateOptions) {
-      const that = this;
-      options ??= {};
-      let project = typeof projIssue === 'string' ? projIssue : undefined;
-      let parent = undefined;
-
-      if (project !== undefined) {
-        const split = project.split('-');
-        options.project = project = split[0];
-
-        if (split.length > 1) {
-          options.parent = parent = split[1];
-          console.log('Creating subtask for issue ' + projIssue);
-        } else {
-          console.log('Creating issue in project ' + project);
-        }
-      }
-      that.getMeta(function(error, meta) {
-        if (error) {
-          printError(error.messages);
-          process.stdin.destroy();
-          return;
-        }
-        that.projects = meta;
-        that.askProject(options?.project, function(projectId, index) {
-          that.project = that.projects[index];
-          that.answers.fields.project = {
-            id: projectId
-          };
-
-          if (!options.subtask && (options.priority || options.type || options.summary || options.description)) {
-            options.subtask = false;
-          }
-
-          that.askSubTask(options.subtask, function(taskKey) {
-            if (taskKey) {
-              that.answers.fields.parent = {
-                key: that.project.key + '-' + taskKey
-              };
-            }
-
-            that.askIssueType(options.type, function(issueTypeId) {
-              that.answers.fields.issuetype = {
-                id: issueTypeId
-              };
-              that.ask('Type the issue summary: ', function(issueSummary) {
-                that.answers.fields.summary = issueSummary;
-                that.ask('Type the issue details: ', function(issueDescription) {
-                  const defaultAnswer = issueSummary;
-
-                  if (!issueDescription) {
-                    that.answer.fields.description = defaultAnswer;
-                  } else {
-                    that.answers.fields.description = issueDescription;
-                  }
-
-                  process.stdin.destroy();
-                  that.saveIssue(options);
-                }, null, null, options.description);
-              }, null, null, options.summary);
-            });
-          });
-        });
-      });
-    },
-    getMeta: function(callback) {
-      jira.issue.getCreateMetadata({})
-        .then(data => {
-          callback(undefined, data.projects);
-        }, response => {
-          callback({ messages: utils.extractErrorMessages(response) }, undefined);
-        });
-    },
-
-    saveIssue: function() {
-      jira.issue.createIssue(this.answers)
-        .then(data => {
-          console.log(`Issue ${data.key} created successfully!`);
-        }, response => {
-          const errorMessages = utils.extractErrorMessages(response);
-          printError(errorMessages);
-        });
-    }
-  };
-  return create;
-}
+//
+// function creation(jira) {
+//   const create = {
+//     query: null,
+//     table: null,
+//     isSubTask: false,
+//     projects: [],
+//     priorities: [],
+//     answers: {
+//       fields: {}
+//     },
+//     ask: function(question, callback, yesno, values, answer) {
+//       let that = this,
+//         options = {},
+//         issueTypes = [],
+//         i = 0;
+//
+//       if (answer || answer === false) {
+//         return callback(answer);
+//       }
+//
+//       if (values && values.length > 0) {
+//         for (i; i < values.length; i++) {
+//           if (that.isSubTask) {
+//             if (values[i].subtask !== undefined) {
+//               if (values[i].subtask) {
+//                 issueTypes.push('(' + values[i].id + ') ' + values[i].name);
+//               }
+//             } else {
+//               issueTypes.push('(' + values[i].id + ') ' + values[i].name);
+//             }
+//           } else {
+//             if (!values[i].subtask) {
+//               issueTypes.push('(' + values[i].id + ') ' + values[i].name);
+//             }
+//           }
+//         }
+//
+//         console.log(issueTypes.join('\n'));
+//       }
+//
+//       inquirer.prompt({ message: question, name: question }, function(answer) {
+//         if (answer.length > 0) {
+//           callback(answer);
+//         } else {
+//           if (yesno) {
+//             callback(false);
+//           } else {
+//             that.ask(question, callback);
+//           }
+//         }
+//       });
+//     },
+//     askProject: function(project, callback) {
+//       let that = this,
+//         i = 0;
+//       this.ask('Type the project name or key: ', function(answer) {
+//         let projectId = 0,
+//           index = 0;
+//         answer = answer.charAt(0).toUpperCase() + answer.substring(1).toLowerCase();
+//
+//         for (i; i < that.projects.length; i++) {
+//           if (answer == that.projects[i].key || answer.toUpperCase() == that.projects[i].key) {
+//             projectId = that.projects[i].id;
+//             index = i;
+//           } else if (answer == that.projects[i].name) {
+//             projectId = that.projects[i].id;
+//             index = i;
+//           }
+//         }
+//
+//         if (projectId > 0) {
+//           callback(projectId, index);
+//         } else {
+//           console.log('Project "' + answer + '" does not exists.');
+//           that.askProject(project, callback);
+//         }
+//       }, null, null, project);
+//     },
+//     askSubTask: function(subtask, callback) {
+//       const that = this;
+//       that.ask('Type the parent task key (only the numbers) if exists, otherwise press enter: ', function(answer) {
+//         if (answer === false || parseInt(answer) > 0) {
+//           that.isSubTask = answer ? true : false;
+//           callback(answer);
+//         } else {
+//           console.log('Please, type only the task number (ex: if issue is "XXX-324", type only "324").');
+//           that.askSubTask(subtask, callback);
+//         }
+//       }, true, null, subtask);
+//     },
+//     askIssueType: function(type, callback) {
+//       const that = this,
+//         issueTypeArray = that.project.issuetypes;
+//       that.ask('Select issue type: ', function(issueType) {
+//         callback(issueType);
+//       }, false, issueTypeArray, type);
+//     },
+//     askIssuePriorities: function(priority, callback) {
+//       const that = this,
+//         issuePriorities = that.priorities;
+//       that.ask('Select the priority: ', function(issuePriority) {
+//         callback(issuePriority);
+//       }, false, issuePriorities, priority);
+//     },
+//     newIssue: function(projIssue: string, options: jiraclCreateOptions) {
+//       const that = this;
+//       options ??= {};
+//       let project = typeof projIssue === 'string' ? projIssue : undefined;
+//       let parent = undefined;
+//
+//       if (project !== undefined) {
+//         const split = project.split('-');
+//         options.project = project = split[0];
+//
+//         if (split.length > 1) {
+//           options.parent = parent = split[1];
+//           console.log('Creating subtask for issue ' + projIssue);
+//         } else {
+//           console.log('Creating issue in project ' + project);
+//         }
+//       }
+//       that.getMeta(function(error, meta) {
+//         if (error) {
+//           printError(error.messages);
+//           process.stdin.destroy();
+//           return;
+//         }
+//         that.projects = meta;
+//         that.askProject(options?.project, function(projectId, index) {
+//           that.project = that.projects[index];
+//           that.answers.fields.project = {
+//             id: projectId
+//           };
+//
+//           if (!options.subtask && (options.priority || options.type || options.summary || options.description)) {
+//             options.subtask = false;
+//           }
+//
+//           that.askSubTask(options.subtask, function(taskKey) {
+//             if (taskKey) {
+//               that.answers.fields.parent = {
+//                 key: that.project.key + '-' + taskKey
+//               };
+//             }
+//
+//             that.askIssueType(options.type, function(issueTypeId) {
+//               that.answers.fields.issuetype = {
+//                 id: issueTypeId
+//               };
+//               that.ask('Type the issue summary: ', function(issueSummary) {
+//                 that.answers.fields.summary = issueSummary;
+//                 that.ask('Type the issue details: ', function(issueDescription) {
+//                   const defaultAnswer = issueSummary;
+//
+//                   if (!issueDescription) {
+//                     that.answer.fields.description = defaultAnswer;
+//                   } else {
+//                     that.answers.fields.description = issueDescription;
+//                   }
+//
+//                   process.stdin.destroy();
+//                   that.saveIssue(options);
+//                 }, null, null, options.description);
+//               }, null, null, options.summary);
+//             });
+//           });
+//         });
+//       });
+//     },
+//     getMeta: function(callback) {
+//       jira.issue.getCreateMetadata({})
+//         .then(data => {
+//           callback(undefined, data.projects);
+//         }, response => {
+//           callback({ messages: utils.extractErrorMessages(response) }, undefined);
+//         });
+//     },
+//
+//     saveIssue: function() {
+//       jira.issue.createIssue(this.answers)
+//         .then(data => {
+//           console.log(`Issue ${data.key} created successfully!`);
+//         }, response => {
+//           const errorMessages = utils.extractErrorMessages(response);
+//           printError(errorMessages);
+//         });
+//     }
+//   };
+//   return create;
+// }
 
 
 //

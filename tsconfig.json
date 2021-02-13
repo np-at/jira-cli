@@ -1,15 +1,18 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "target": "es2020",
     "forceConsistentCasingInFileNames": true,
     "sourceMap": false,
     "declaration": false,
-    "lib": ["es2020"],
+    "lib": [
+      "es2020"
+    ],
     "esModuleInterop": true,
-    "outDir": "lib",
+    "outDir": "tsc_output",
     "moduleResolution": "node",
-
+    "removeComments": true,
+    "emitBOM": true
   },
   "typeAcquisition": {
     "enable": true
@@ -19,7 +22,11 @@
     "lib",
     "bin",
     "test",
-    "libx"
+    "libx",
+    "terserMinify.ts"
+  ],
+  "include": [
+    "./src/**/*"
   ],
   "compileOnSave": true
 }

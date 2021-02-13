@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /* eslint-disable max-statements */
 
 //
@@ -13,7 +12,7 @@ import commander, { Command } from 'commander';
 import config from './config';
 import auth from './auth';
 import ls, { lsCommand } from './jira/ls';
-import describe from './jira/describe';
+import describe, { addDescribeCommand } from './jira/describe';
 import assign from './jira/assign';
 import fix from './jira/fix';
 import release from './jira/release';
@@ -29,7 +28,7 @@ import newCreate from './jira/new';
 import edit from './jira/edit';
 // @ts-ignore
 import pkg from '../package.json';
-import createCommand from './jira/create';
+import addJiraCreateCommand from './jira/create';
 import * as os from 'os';
 import { client } from './helpers/helpers';
 
@@ -48,6 +47,15 @@ export interface jiraclCreateOptions {
 
 }
 
+export async function issuePickerCompletionAsync(...args) {
+  try {
+    const issueSuggestions = await client.issueSearch.getIssuePickerSuggestions({ query: args[1]?.args?.join(' ') ?? '' });
+    console.log(issueSuggestions.sections.flatMap(x => x.issues).map(x => String(`${x.key}|*|${x.summary}`)).join(os.EOL));
+    return;
+  } catch (e) {
+    console.error(e);
+  }
+}
 export default (async () => {
   function finalCb(err, results?: any) {
     if (err) {
@@ -59,11 +67,13 @@ export default (async () => {
   }
 
 
+
   const program = new Command().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
   program.version(pkg.version);
   lsCommand(program, finalCb);
   program.command('_complete [cursorPos] [commandAst] [wordToComplete]').action(async (...args) => {
     const cursorPos = parseInt(args[0]);
+    const wordToComplete = args[2];
     const currentInput: string[] = args[1].split(' ');
     const app = currentInput.shift();
 
@@ -100,36 +110,58 @@ export default (async () => {
 
 
     // @ts-ignore
-    const currentCommand = program._findCommand(currentInput[currentInput.length - 1]);
+    let currentCommand: commander.Command = program._findCommand(currentInput[0]);
+    for (let i = 1; i <= currentInput.length; i++) {
+      // if (currentInput[i].startsWith('-'))
+      //   continue;
+      const nextArg = currentCommand.commands.find(x => x?.name()?.normalize() === currentInput[i]?.normalize());
+      if (!nextArg || i >= currentInput.length - 1) {
+        try {
+          const extraArgs = currentInput.slice(i) ?? [];
+          // @ts-ignore
+          currentCommand._dispatchSubcommand('_complete', extraArgs, []);
+          return;
+        } catch (e) {
+          console.log(e);
+          console.error(e);
+        }
+      } else {
 
-    if (currentCommand) {
-      try {
-        currentCommand._dispatchSubcommand('_complete', [], []);
-        return;
-      } catch (e) {
-        console.error(e);
+        currentCommand = nextArg;
       }
-      // const currentCompletionCommand = currentCommand._findCommand('_complete');
-      // // @ts-ignore
-      // if (currentCompletionCommand._executableHandler) {
-      //   try {
-      //     // @ts-ignore
-      //     program._executeSubCommand(currentCompletionCommand, undefined);
-      //   } catch (e) {
-      //     console.error(e);
-      //   }
-      // }
+
     }
+    console.log('ERRROR');
+    // if (currentCommand) {
+    //   try {
+    //     // @ts-ignore
+    //     currentCommand._dispatchSubcommand('_complete', [], []);
+    //
+    //     return;
+    //   } catch (e) {
+    //     console.error(e);
+    //   }
+    // const currentCompletionCommand = currentCommand._findCommand('_complete');
+    // // @ts-ignore
+    // if (currentCompletionCommand._executableHandler) {
+    //   try {
+    //     // @ts-ignore
+    //     program._executeSubCommand(currentCompletionCommand, undefined);
+    //   } catch (e) {
+    //     console.error(e);
+    //   }
+    // }
+    // }
 
 
     // console.log(currentInput);
-    let currentCom: commander.Command = program;
-    for (let i = 0; i < currentInput.length - 1; i++) {
-      const nextCommand = currentCom.commands.find(x => x.name().normalize('NFC') === currentInput[i].normalize('NFC'));
-      if (nextCommand)
-        currentCom = nextCommand;
-    }
-    console.log(...currentCom.commands.map(x => x?.name()?.trim()).concat(currentCom?.opts()?.keys()?.trim()).join(os.EOL));
+    // let currentCom: commander.Command = program;
+    // for (let i = 0; i < currentInput.length - 1; i++) {
+    //   const nextCommand = currentCom.commands.find(x => x.name().normalize('NFC') === currentInput[i].normalize('NFC'));
+    //   if (nextCommand)
+    //     currentCom = nextCommand;
+    // }
+    // console.log(...currentCom.commands.map(x => x?.name()?.trim()).concat(currentCom?.opts().trim()).join(os.EOL));
   });
 
   program
@@ -165,16 +197,7 @@ export default (async () => {
       }
 
       transitions.done(issue, options.resolution, finalCb);
-    }).command('_complete').action(async (...args) => {
-      try {
-        const issueSuggestions = await client.issueSearch.getIssuePickerSuggestions({ currentJQL: 'assignee=currentUser()' });
-        console.log(issueSuggestions.sections.flatMap(x => x.issues).map(x => String(`${x.key}|*|${x.summary}`)).join(os.EOL));
-      } catch (e) {
-        console.error(e);
-      }
-
-
-    });
+    }).command('_complete').action(issuePickerCompletionAsync);
   program
     .command('invalid <issue>')
     .description('Mark issue as finished.')
@@ -290,39 +313,34 @@ export default (async () => {
         comment().show(issue);
       }
     });
-  program
-    .command('show <issue>')
-    .description('Show info about an issue')
-    .option('-o, --output <field>', 'Output field content', String)
-    .action(function(issue, options) {
-      if (options.output) {
-        describe.show(issue, options.output);
-      } else {
-        describe.show(issue);
-      }
-    }).command('_complete')
-    .action(async (...args) => {
-      try {
-        // console.log("show firing");
-        const issueSuggestions = await client.issueSearch.getIssuePickerSuggestions({ query: '' });
-        console.log(issueSuggestions.sections.flatMap(x => x.issues).map(x => String(`${x.key}|*|${x.summary}`)).join(os.EOL));
-        return;
-      } catch (e) {
-        console.error(e);
-      }
-    });
+  await addDescribeCommand(program);
+  // program
+  //   .command('show <issue>')
+  //   .description('Show info about an issue')
+  //   .option('-o, --output <field>', 'Output field content', String)
+  //   .action(function(issue, options) {
+  //     if (options.output) {
+  //       describe.show(issue, options.output);
+  //     } else {
+  //       describe.show(issue);
+  //     }
+  //   }).command('_complete')
+  //   .action(issuePickerCompletionAsync);
+
+
   program
     .command('open <issue>')
     .description('Open an issue in a browser')
     .action(function(issue, options) {
       describe.open(issue);
-    });
+    }).command('_complete')
+    .action(issuePickerCompletionAsync);
   program
     .command('worklog <issue>')
     .description('Show worklog about an issue')
     .action(function(issue) {
       worklog.show(issue);
-    });
+    }).command('_complete').action(issuePickerCompletionAsync);
   program
     .command('worklogadd <issue> <timeSpent> [comment]')
     .description('Log work for an issue')
@@ -340,7 +358,7 @@ export default (async () => {
       console.log('    <comment> (optional) comment');
       console.log();
     });
-  await createCommand(program, finalCb);
+  await addJiraCreateCommand(program, finalCb);
   //
   // program
   //   .command('create [project[-issue]]')
