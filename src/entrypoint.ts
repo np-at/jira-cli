@@ -31,7 +31,6 @@ import pkg from '../package.json';
 import addJiraCreateCommand from './jira/create';
 import * as os from 'os';
 import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
-import CacheObject from './helpers/cache';
 
 
 export interface jiraclCreateOptions {

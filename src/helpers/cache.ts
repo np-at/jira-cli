@@ -6,8 +6,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import { JiraIssueType, JiraProject } from './PromptHelpers';
 import { IssueResponse } from 'jira-connector/types/api';
 import { client } from './helpers';
-import * as os from 'os';
-import cp from 'child_process';
 
 const HourMilli = 3600000;
 const cacheFileName = '.jira-cli-cache.json';
