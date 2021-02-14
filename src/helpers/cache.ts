@@ -19,11 +19,11 @@ export const fuseIssueIndexPath = path.join(cacheDirectory, '.issuesIndex.json')
 export const fuseProjectIndexPath = path.join(cacheDirectory, '.projectIndex.json');
 
 export const fuseIssueIndexOptions: IFuseOptions<IssueResponse> = {
-  keys: ['key', 'fields.summary'],
+  keys: ['key', 'fields.summary', 'fields.description'],
   isCaseSensitive: false
 };
 export const fuseProjectIndexOptions: IFuseOptions<IssueResponse> = {
-  keys: ['key', 'fields.summary'],
+  keys: ['key'],
   isCaseSensitive: false
 };
 

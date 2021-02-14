@@ -22,6 +22,7 @@ export interface IConfig extends MetaDataObj{
   };
   user_alias: any;
   authNew: any,
+  cacheTimeoutThreshold?: number
 }
 interface MetaDataObj {
   [key:string]: unknown
@@ -66,7 +67,7 @@ function _loadConfigFromFile(configFile, defConfig): IConfig {
   return defConfig;
 }
 
-function _loadInitialFromTemplate(template): boolean {
+function _loadInitialFromTemplate(template: any): boolean {
   _data = _loadConfigFromFile(template, initialConfig);
   return true;
 }
@@ -94,7 +95,8 @@ function _createConfig(configFileContent: string):  IConfig {
     user_alias: configObject.user_alias,
     edit_meta: configObject.edit_meta,
     default_create: configObject.default_create,
-    use_self_signed_certificate: configObject.use_self_signed_certificate
+    use_self_signed_certificate: configObject.use_self_signed_certificate,
+    cacheTimeoutThreshold: configObject.cacheTimeoutThreshold
   };
 
   if (!config.options || !config.options['jira_stop']) {

@@ -13,11 +13,12 @@ import { IssueResponse } from 'jira-connector/types/api';
 import { client } from './helpers';
 import settings from '../settings';
 import fuse from 'fuse.js';
+import config from '../config';
 
 console.log('refreshing cache projects and issues');
 console.time('rf_runner');
 const lockFilePath = cacheFilePath + '.lock';
-
+const CacheExpirationThreshold = config.cacheTimeoutThreshold ?? HourMilli;
 const currentCache = (): CacheFileProps => {
   try {
     return JSON.parse(readFileSync(cacheFilePath).toString('utf-8'));
@@ -49,7 +50,7 @@ export const refreshProjects = async (force = false): Promise<void> => {
   try {
     const projects: JiraProject[] = [];
     const issues: IssueResponse[] = [];
-    if (force || (Date.now() - (initData?.projects?.updated ?? 0)) >= HourMilli) {
+    if (force || (Date.now() - (initData?.projects?.updated ?? 0)) >= CacheExpirationThreshold) {
       try {
         const response = await client.projects.getAllProjects({ expand: 'issueTypes' });
         projects.push(...response);
@@ -58,11 +59,12 @@ export const refreshProjects = async (force = false): Promise<void> => {
         console.log(e);
       }
     }
-    if (force || (Date.now() - (initData?.issues?.updated ?? 0)) >= HourMilli) {
+    if (force || (Date.now() - (initData?.issues?.updated ?? 0)) >= CacheExpirationThreshold) {
       let index = 0;
       while (true) {
         try {
           const response = await client.issueSearch.searchForIssuesUsingJqlGet({
+            jql: 'Issue IN watchedIssues()',
             startAt: index,
             maxResults: 5000,
             fields: ['*all']

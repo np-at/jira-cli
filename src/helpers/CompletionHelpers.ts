@@ -9,11 +9,12 @@ export async function issuePickerCompletionAsync(...args): Promise<void> {
     const fe = new CacheObject().fuzzyIndexSearch;
     if (fe !== null) {
       const results = fe.search(searchTerm);
-      if (results) {
-        console.log(results.flatMap(x => x.item).map(x => String(`${x.key}|*|${x.fields['summary']}`)).join(os.EOL));
+      if (results?.length > 0) {
+        console.log(results.map(x => String(`${x.item.key}|*|${x.item.fields.summary}`)).join(os.EOL));
         return;
       }
     }
+    // fallback to using Jira api issue picker suggestions (good, just much slower)
     const issueSuggestions = await client.issueSearch.getIssuePickerSuggestions({ query: args[1]?.args?.join(' ') ?? '' });
     console.log(issueSuggestions.sections.flatMap(x => x.issues).map(x => String(`${x.key}|*|${x.summary}`)).join(os.EOL));
     return;
