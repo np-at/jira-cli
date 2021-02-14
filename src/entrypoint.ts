@@ -26,12 +26,13 @@ import watch from './jira/watch';
 import addToSprint from './jira/addToSprint';
 import newCreate from './jira/new';
 import edit from './jira/edit';
-// @ts-ignore
-import pkg from '../package.json';
 import addJiraCreateCommand from './jira/create';
 import * as os from 'os';
 import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
 
+// @ts-ignore
+import pkg from '../package.json';
+import CacheObject from './helpers/cache';
 
 export interface jiraclCreateOptions {
   project?: string;
@@ -58,9 +59,8 @@ export default (async () => {
   }
 
 
-
   const program = new Command().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
-
+  const cache = new CacheObject();
   program.version(pkg.version);
   lsCommand(program, finalCb);
   program.command('_complete [cursorPos] [commandAst] [wordToComplete]').action(async (...args) => {
@@ -485,7 +485,7 @@ export default (async () => {
       send.send(options);
     });
   await program.parseAsync();
-
+  process.exit(0);
   if (program.args.length === 0) {
     console.log('\nYour first step is to run the config option.\n');
     program.help();
