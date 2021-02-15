@@ -25,7 +25,7 @@ export const addDescribeCommand = (prog: commander.Command) => {
       } catch (e) {
         console.error(e);
       }
-    }).command('_complete')
+    }).command('_complete', { hidden: true })
     .action(issuePickerCompletionAsync);
 };
 

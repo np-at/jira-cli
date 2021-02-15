@@ -1,6 +1,7 @@
 import fs, { PathLike } from 'fs';
 
 import _url from 'url';
+import { Response } from 'superagent';
 
 function _loadFromFile(path: PathLike):string {
   return fs.readFileSync(path, 'utf-8');
@@ -32,7 +33,7 @@ function _deleteFile(pathTofile:fs.PathLike):void {
   if (_isFileExists(pathTofile)) fs.unlinkSync(pathTofile);
 }
 
-function _extractErrorMessages(response): string[] {
+function _extractErrorMessages(response: string | Response): string[] {
   const { errors, messages } = typeof response === 'string' ? JSON.parse(response).body : response.body;
 
   function convertErrorsToArray(errors) {

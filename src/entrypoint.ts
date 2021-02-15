@@ -30,6 +30,7 @@ import addJiraCreateCommand from './jira/create';
 import * as os from 'os';
 import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pkg from '../package.json';
 import CacheObject from './helpers/cache';
@@ -48,7 +49,7 @@ export interface jiraclCreateOptions {
 
 }
 
-export default (async () => {
+(async () => {
   function finalCb(err, results?: any) {
     if (err) {
       console.log(...err.toString());
@@ -63,7 +64,7 @@ export default (async () => {
   const cache = new CacheObject();
   program.version(pkg.version);
   lsCommand(program, finalCb);
-  program.command('_complete [cursorPos] [commandAst] [wordToComplete]').action(async (...args) => {
+  program.command('_complete [cursorPos] [commandAst] [wordToComplete]', { hidden: true }).action(async (...args) => {
     const cursorPos = parseInt(args[0]);
     const wordToComplete = args[2];
     const currentInput: string[] = args[1].split(' ');
@@ -101,15 +102,22 @@ export default (async () => {
     // return;
 
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     let currentCommand: commander.Command = program._findCommand(currentInput[0]);
     for (let i = 1; i <= currentInput.length; i++) {
-      // if (currentInput[i].startsWith('-'))
-      //   continue;
+      if (currentInput[i].startsWith('-')) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const options: commander.Option[] = currentCommand.options.filter(x => x.long.startsWith(currentInput[i]));
+        console.log(options.map(x => String(x.long + '|*|' + x.description)).join(os.EOL));
+        return;
+      }
       const nextArg = currentCommand.commands.find(x => x?.name()?.normalize() === currentInput[i]?.normalize());
       if (!nextArg || i >= currentInput.length - 1) {
         try {
           const extraArgs = currentInput.slice(i) ?? [];
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           currentCommand._dispatchSubcommand('_complete', extraArgs, []);
           return;
@@ -161,13 +169,13 @@ export default (async () => {
     .description('Start working on an issue.')
     .action(issue => {
       transitions.start(issue, finalCb);
-    });
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('stop <issue>')
     .description('Stop working on an issue.')
     .action(issue => {
       transitions.stop(issue, finalCb);
-    });
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('review <issue> [assignee]')
     .description('Mark issue as being reviewed [by assignee(optional)].')
@@ -177,7 +185,7 @@ export default (async () => {
       if (assignee) {
         assign().to(issue, assignee);
       }
-    });
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('done <issue>')
     .option('-r, --resolution <name>', 'resolution name (e.g. \'Resolved\')', String)
@@ -189,13 +197,13 @@ export default (async () => {
       }
 
       transitions.done(issue, options.resolution, finalCb);
-    }).command('_complete').action(issuePickerCompletionAsync);
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('invalid <issue>')
     .description('Mark issue as finished.')
     .action((issue, options) => {
       transitions.invalid(issue, options, finalCb);
-    });
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('mark <issue> [transitionId]')
     .description('Mark issue as.')
@@ -325,14 +333,14 @@ export default (async () => {
     .description('Open an issue in a browser')
     .action(function(issue, options) {
       describe.open(issue);
-    }).command('_complete')
+    }).command('_complete', { hidden: true })
     .action(issuePickerCompletionAsync);
   program
     .command('worklog <issue>')
     .description('Show worklog about an issue')
     .action(function(issue) {
       worklog.show(issue);
-    }).command('_complete').action(issuePickerCompletionAsync);
+    }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('worklogadd <issue> <timeSpent> [comment]')
     .description('Log work for an issue')
