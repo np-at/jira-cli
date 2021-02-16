@@ -8,7 +8,7 @@
 // Meta-data      : http://localhost:8080/rest/api/2/issue/JRA-13/editmeta
 //
 
-import commander, { Command } from 'commander';
+import commander from 'commander';
 import config from './config';
 import auth from './auth';
 import ls, { lsCommand } from './jira/ls';
@@ -34,6 +34,7 @@ import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
 // @ts-ignore
 import pkg from '../package.json';
 import CacheObject from './helpers/cache';
+import { CommandWComplete } from './Extensions/CommandWComplete';
 
 export interface jiraclCreateOptions {
   project?: string;
@@ -60,7 +61,7 @@ export interface jiraclCreateOptions {
   }
 
 
-  const program = new Command().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
+  const program = new CommandWComplete().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
   const cache = new CacheObject();
   program.version(pkg.version);
   lsCommand(program, finalCb);
@@ -78,16 +79,18 @@ export interface jiraclCreateOptions {
       // console.log(commands.join(os.EOL));
       return;
     } else if (currentInput.length === 1) {
-      let lng = app.length;
-      for (let i = 0; i < currentInput.length; i++) {
-        lng++;
-        lng += currentInput[i].length;
-      }
+      // let lng = app.length;
+      // for (let i = 0; i < currentInput.length; i++) {
+      //   lng++;
+      //   lng += currentInput[i].length;
+      // }
       // console.log("length is: ", lng, cursorPos);
+      // console.log(`enter _complete sub ${String(args[1].length >= cursorPos)}`, args[1].length >= cursorPos);
 
-      if (lng >= cursorPos) {// if (program.commands.find(x=>x.name().normalize() === currentInput[0]))
+      if (args[1].length >= cursorPos) {// if (program.commands.find(x=>x.name().normalize() === currentInput[0]))
         // cursor is still on word
         // console.log('length is: ', lng, cursorPos);
+
         console.log(commands.filter(x => x.normalize().startsWith(currentInput[0].normalize())).join(os.EOL));
         return;
       }
@@ -101,33 +104,43 @@ export interface jiraclCreateOptions {
     // }
     // return;
 
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     let currentCommand: commander.Command = program._findCommand(currentInput[0]);
+
     for (let i = 1; i <= currentInput.length; i++) {
-      if (currentInput[i].startsWith('-')) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const options: commander.Option[] = currentCommand.options.filter(x => x.long.startsWith(currentInput[i]));
-        console.log(options.map(x => String(x.long + '|*|' + x.description)).join(os.EOL));
-        return;
-      }
-      const nextArg = currentCommand.commands.find(x => x?.name()?.normalize() === currentInput[i]?.normalize());
-      if (!nextArg || i >= currentInput.length - 1) {
-        try {
-          const extraArgs = currentInput.slice(i) ?? [];
+
+      try {
+        if (currentInput[i]?.startsWith('-')) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          currentCommand._dispatchSubcommand('_complete', extraArgs, []);
+          const options: commander.Option[] = currentCommand.options.filter(x => x.long?.startsWith(currentInput[i]));
+          console.log(options.map(x => String(x.long + '|*|' + x.description)).join(os.EOL));
           return;
-        } catch (e) {
-          console.log(e);
-          console.error(e);
         }
-      } else {
+        const nextArg = currentCommand.commands.find(x => x?.name()?.normalize() === currentInput[i]?.normalize());
+        if (!nextArg || i >= currentInput.length - 1) {
+          try {
+            if (currentCommand.commands.length === 0) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              console.log(currentCommand.options.map(x => String(x.long + '|*|' + x.description)).join(os.EOL));
+            }
+            const extraArgs = currentInput.slice(i) ?? [];
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            currentCommand._dispatchSubcommand('_complete', extraArgs, []);
+            return;
+          } catch (e) {
+            console.log(e);
+            console.error(e);
+          }
+        } else {
 
-        currentCommand = nextArg;
+          currentCommand = nextArg;
+        }
+      } catch (e) {
+        console.log(e);
       }
 
     }
@@ -333,7 +346,7 @@ export interface jiraclCreateOptions {
     .description('Open an issue in a browser')
     .action(function(issue, options) {
       describe.open(issue);
-    }).command('_complete', { hidden: true })
+    }).command('_complete', { hidden: false })
     .action(issuePickerCompletionAsync);
   program
     .command('worklog <issue>')
@@ -493,6 +506,8 @@ export interface jiraclCreateOptions {
       send.send(options);
     });
   await program.parseAsync();
+  // const tr = program.genTree();
+  // console.log(tr);
   process.exit(0);
   if (program.args.length === 0) {
     console.log('\nYour first step is to run the config option.\n');
