@@ -7,7 +7,7 @@ import config from '../config';
 
 import async from 'async';
 
-import utils from '../utils';
+import utils from '../utilities/utils';
 
 import inquirer from 'inquirer';
 

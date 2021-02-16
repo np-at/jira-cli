@@ -1,7 +1,7 @@
 /*global console*/
 import sslRequest from '../ssl_request';
 
-import utils from '../utils';
+import utils from '../utilities/utils';
 
 import config from '../config';
 

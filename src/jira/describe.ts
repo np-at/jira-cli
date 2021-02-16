@@ -2,10 +2,8 @@ import sslRequest from '../ssl_request';
 
 import Table from 'cli-table';
 
-import openurl from 'openurl';
-
 import url from 'url';
-
+import { open as openurl } from '../utilities/openurl';
 import config from '../config';
 import commander from 'commander';
 import { client } from '../helpers/helpers';
@@ -133,7 +131,12 @@ export default (() => {
       });
     },
     open: function(issue) {
-      openurl.open(url.resolve(config.auth.url, 'browse/' + issue));
+      try {
+        openurl(new url.URL(config.auth.url + 'browse/' + issue).toString());
+      } catch (e) {
+        console.error(e);
+      }
+      // openurl.open(url.resolve(config.auth.url, 'browse/' + issue));
     },
     show: function(issue, field = undefined) {
       this.query = 'rest/api/latest/issue/' + issue;

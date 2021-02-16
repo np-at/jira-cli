@@ -1,6 +1,6 @@
 import settings from '../settings';
 import path from 'path';
-import utils from '../utils';
+import utils from '../utilities/utils';
 import * as fs from 'fs';
 import { readFileSync, writeFileSync } from 'fs';
 import { JiraIssueType, JiraProject } from './PromptHelpers';
