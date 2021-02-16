@@ -19,7 +19,7 @@ import release from './jira/release';
 import send from './jira/send';
 import comment from './jira/comment';
 import sprint from './jira/sprint';
-import transitions from './jira/transitions';
+import transitions, { startIssue } from './jira/transitions';
 import worklog from './jira/worklog';
 import link from './jira/link';
 import watch from './jira/watch';
@@ -180,8 +180,13 @@ export interface jiraclCreateOptions {
   program
     .command('start <issue>')
     .description('Start working on an issue.')
-    .action(issue => {
-      transitions.start(issue, finalCb);
+    .action(async issue => {
+      try {
+        // transitions.start(issue, finalCb);
+        await startIssue(issue, finalCb);
+      } catch (e) {
+        console.error(e);
+      }
     }).command('_complete', { hidden: true }).action(issuePickerCompletionAsync);
   program
     .command('stop <issue>')
@@ -506,7 +511,11 @@ export interface jiraclCreateOptions {
       send.send(options);
     });
   await program.parseAsync();
-  // const tr = program.genTree();
+  if (!config.tree) {
+    config.update('tree', program.genTree());
+    config.save();
+  }
+
   // console.log(tr);
   process.exit(0);
   if (program.args.length === 0) {

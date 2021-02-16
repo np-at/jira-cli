@@ -14,11 +14,12 @@ interface retob {
   subcommands?: retob[]
 }
 
-class RetobImpl implements retob {
+export class RetobImpl implements retob {
   description: string;
   name: string;
   options: treeOption[];
   subcommands: RetobImpl[];
+  jql_query?: string
 
   match = (prop: string) => {
     if (prop.startsWith('-')) {
@@ -46,6 +47,9 @@ const genNode = (cmd: commander.Command): RetobImpl => {
     valueReq: x.required
   }));
   o.subcommands = help.visibleCommands(cmd).map(x => genNode(x));
+  if (!o.subcommands || o.subcommands?.length <= 0) {
+    o.jql_query = null;
+  }
   return o;
 };
 export class CommandWComplete extends commander.Command {
@@ -65,7 +69,7 @@ export class CommandWComplete extends commander.Command {
     return new CommandWComplete(name);
   }
 
-  genTree = () => genNode(this);
+  genTree = (): RetobImpl => genNode(this);
 
 
 

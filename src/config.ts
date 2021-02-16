@@ -5,6 +5,7 @@ import utils from './utils';
 
 import * as initialConfig from './initial_config';
 import { URL } from 'url';
+import { RetobImpl } from './Extensions/CommandWComplete';
 
 export interface IConfig extends MetaDataObj{
   use_self_signed_certificate: boolean;
@@ -22,7 +23,8 @@ export interface IConfig extends MetaDataObj{
   };
   user_alias: any;
   authNew: any,
-  cacheTimeoutThreshold?: number
+  cacheTimeoutThreshold?: number,
+  tree?: RetobImpl
 }
 interface MetaDataObj {
   [key:string]: unknown

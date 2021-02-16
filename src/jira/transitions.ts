@@ -8,6 +8,8 @@ import inquirer_autocomplete_prompt from 'inquirer-autocomplete-prompt';
 
 import inquirer from 'inquirer';
 import commander from 'commander';
+import { client } from '../helpers/helpers';
+import TransitionsResponseModel from './transitionModel';
 
 
 const prompt = inquirer.createPromptModule().registerPrompt('autocomplete', inquirer_autocomplete_prompt);
@@ -15,6 +17,35 @@ const prompt = inquirer.createPromptModule().registerPrompt('autocomplete', inqu
 export const registerTransitionCommand = (prog: commander.Command) => {
   prog.command('t [issue] [transition_state]');
 
+};
+export const startIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_start');
+export const stopIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_stop');
+export const doneIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_done');
+
+const transitionIssue = async (issue, cb, transitionType: 'jira_start'|'jira_done'|'jira_stop'|'jira_invalid') => {
+  const startTransitionName = config.options[transitionType]['status'];
+  const transitions: TransitionsResponseModel = await client.issues.getTransitions({
+    issueIdOrKey: issue,
+    expand: 'transitions.fields'
+  });
+  const newTransition = transitions.transitions.find(x => x.name.normalize() === startTransitionName.normalize());
+  if (newTransition.fields) {
+    new Error('NOT IMPLEMENTED');
+    console.error('NOT IMPLEMENTED');
+  }
+  try {
+    const response = await client.issues.transitionIssue({ issueIdOrKey: issue, transition: { id: newTransition.id } });
+    cb(response, null);
+  } catch (e) {
+    cb(null, e);
+  }
+  // await client.issues.transitionIssue({issueIdOrKey: issue, transition: })
+  // getTransitionCode(issue, transitionName, (transitionID) => {
+  //   doTransition(issue, transitionID, (err) => {
+  //     console.log('Issue [' + issue + '] moved to ' + this.transitionName);
+  //     cb(err);
+  //   });
+  // });
 };
 export default {
   query: null,
@@ -113,7 +144,7 @@ export default {
     });
   },
   makeTransition: function(issue, cb) {
-    this.getTransitions(issue, (err, transitionsAvailable)  =>{
+    this.getTransitions(issue, (err, transitionsAvailable) => {
       if (err) {
         return cb(err);
       }
