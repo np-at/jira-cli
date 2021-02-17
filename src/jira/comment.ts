@@ -1,8 +1,58 @@
-/*global requirejs,console,define,fs*/
 import sslRequest from '../ssl_request';
 
 import config from '../config';
+import { client } from '../helpers/helpers';
 
+interface ADFNode {
+  type: string,
+  content?: ADFNode[],
+
+}
+
+interface ADFChildNode extends ADFNode {
+  type: 'listItem' | 'media' | 'table_cell' | 'table_header' | 'table_row'
+  marks?: { type: 'code' | 'em' | 'link' | 'strike' | 'strong' | 'subsup' | 'textColor' | 'underline' }[]
+}
+
+interface ADFTopLevelNode extends ADFNode {
+  type: 'blockquote' | 'bulletList' | 'codeBlock' | 'heading' | 'mediaGroup' | 'mediaSingle' | 'orderedList' | 'panel' | 'paragraph' | 'rule' | 'table'
+  content: Array<ADFInlineTextNode | ADFChildNode | ADFNode | ADFInlineNode>
+}
+
+interface ADFInlineNode {
+  type: 'emoji' | 'hardBreak' | 'inlineCard' | 'mention' | 'text'
+  attrs?: {
+    id?: string,
+    text?: string,
+    userType?: string
+  }
+  text?: string
+}
+
+interface ADFInlineTextNode {
+  type: 'text',
+  text: string
+}
+
+interface AtlassianDocumentFormatRoot extends ADFNode {
+  version: number,
+  type: 'doc',
+  content: ADFTopLevelNode[]
+}
+
+
+export const jiraComment = async (issue: string, comment: string): Promise<void> => {
+  const doc: AtlassianDocumentFormatRoot = {
+    version: 1, type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: comment }] }
+    ]
+  };
+  try {
+    await client.issueComments.addComment({ issueIdOrKey: issue, body: comment });
+  } catch (e) {
+    console.error(e);
+  }
+};
 export default comment;
 
 function comment(): { query: null; show(issue): void; to: (issue, comment) => void; table: null } {

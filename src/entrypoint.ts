@@ -17,7 +17,7 @@ import assign from './jira/assign';
 import fix from './jira/fix';
 import release from './jira/release';
 import send from './jira/send';
-import comment from './jira/comment';
+import comment, { jiraComment } from './jira/comment';
 import sprint from './jira/sprint';
 import transitions, { startIssue } from './jira/transitions';
 import worklog from './jira/worklog';
@@ -313,7 +313,7 @@ export interface jiraclCreateOptions {
   program
     .command('comment <issue> [text]')
     .description('Comment an issue.')
-    .action(function(issue, text) {
+    .action(async (issue, text) => {
       if (text) {
         //replace name in comment text if present in user_alias config
         //if vikas is nickname stored in user_alias config for vikas.sharma
@@ -326,7 +326,8 @@ export interface jiraclCreateOptions {
             return tag;
           }
         });
-        comment().to(issue, text);
+        await jiraComment(issue, text);
+        // comment().to(issue, text);
       } else {
         comment().show(issue);
       }
@@ -517,7 +518,7 @@ export interface jiraclCreateOptions {
   }
 
   // console.log(tr);
-  process.exit(0);
+  // process.exit(0);
   if (program.args.length === 0) {
     console.log('\nYour first step is to run the config option.\n');
     program.help();
