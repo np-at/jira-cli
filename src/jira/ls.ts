@@ -74,8 +74,8 @@ async function lsEntry(options) {
 
 function displayIssues(issues: IssueResponse[], options?) {
   const table = new Table({
-    head: ['Key', 'Priority', 'Summary', 'Status', 'FixVersions'],
-    // colWidths: [13, 10, getMainTextColWidth(160),20,10],
+    head: ['Key', 'Priority', 'Summary', 'Status'],
+    // colWidths: [13, 10, getMainTextColWidth(50),20],
 
     chars: {
       'top': '',
@@ -135,13 +135,13 @@ function displayIssues(issues: IssueResponse[], options?) {
 
     if (issues[i].fields?.issuetype?.name === 'Epic')
       // special EPIC coloring for EPICS
-      table.push([chalk.redBright(issues[i]?.key), priority.name, summary, status.name, fv ?? 'n/a']);
+      table.push([chalk.redBright(issues[i]?.key), priority.name, summary, status.name]);
     else if (issues[i]?.fields?.parent)
       // indent children to indicate relationship
-      table.push(['|-' + issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
+      table.push(['|-' + issues[i].key, priority.name, summary, status.name]);
     else
       //orphans
-      table.push([issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
+      table.push([issues[i].key, priority.name, summary, status.name]);
 
   }
 
