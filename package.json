@@ -57,6 +57,9 @@
   "bin": {
     "jira": "bin/jira.js"
   },
+  "files": [
+    "lib"
+  ],
   "husky": {
     "hooks": {
       "pre-push": "npm run test"

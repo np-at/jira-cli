@@ -18,7 +18,7 @@ import { jiraclCreateOptions } from '../entrypoint';
 import inquirer from 'inquirer';
 
 
-export const lsCommand = (prog: commander.Command, extCallback: (err: any, results: any) => void): void => {
+export const addCommand_ls = (prog: commander.Command, extCallback: (err: any, results: any) => void): void => {
   prog
     .command('ls')
     .description('List my issues')
@@ -150,45 +150,6 @@ function displayIssues(issues: IssueResponse[], options?) {
   }
 }
 
-function callIssueApi(options: any, cb: (err?: Error | null | undefined, issues?: any) => (any)) {
-  const allIssues = [];
-  let currentLength = 0;
-  let currentOffset = 0;
-  const currentLimit = 500;
-  async.doWhilst((callback?: AsyncResultArrayCallback<Issue>) => {
-    currentLength = 0;
-    const rq = `${config.auth.url}${this.query}&startAt=${currentOffset}&maxResults=${currentLimit}`;
-
-    if (options && options.verbose) {
-      console.log(rq);
-    }
-    sslRequest.get(rq).then(res => {
-      if (!res.ok) {
-        return callback((res.body.errorMessages || [res.error]).join('\n'));
-
-      }
-      allIssues.push(...allIssues, ...res.body.issues);
-      currentLength = res.body.issues.length;
-
-      currentOffset += currentLength;
-      return callback(null, allIssues);
-    }).catch(rej => {
-      return callback((rej.body.errorMessages || [rej.error]).join('\n'));
-    });
-
-
-    // return callback(null, allIssues);
-
-  }, (_, checkCallback: (err: ErrorCallback, check: boolean) => boolean) => {
-
-    if (currentLength === 0) {
-      return checkCallback(null, false);
-    }
-    return checkCallback(null, true);
-  }, (er) => {
-    cb(er, allIssues);
-  });
-}
 
 function getIssues(options, cb?) {
   if (!cb) {

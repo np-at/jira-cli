@@ -51,7 +51,7 @@ export default class CacheObject {
   }
 
   get issues(): IssueResponse[] {
-    return this._data.issues.value;
+    return this._data?.issues?.value;
   }
 
   set issues(issueResponses: IssueResponse[]) {
@@ -59,7 +59,7 @@ export default class CacheObject {
   }
 
   get projects(): JiraProject[] {
-    return this._data.projects.value;
+    return this._data?.projects?.value;
   }
 
   set projects(projects: JiraProject[]) {
@@ -67,7 +67,7 @@ export default class CacheObject {
   }
 
   get recent(): LastUsedEntry {
-    return this._data.recent.value;
+    return this._data?.recent?.value;
   }
 
   set recent(entry: LastUsedEntry) {
@@ -118,7 +118,7 @@ export default class CacheObject {
       this._fuseIssueIndex = issuesIndex ? Fuse.parseIndex<IssueResponse>(issuesIndex) : undefined;
     } catch {
       if (this._data?.issues?.value)
-        this._fuseIssueIndex = Fuse.createIndex(fuseIssueIndexOptions.keys, this._data.issues.value);
+        this._fuseIssueIndex = Fuse.createIndex(fuseIssueIndexOptions.keys, this._data?.issues?.value);
     }
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -126,7 +126,7 @@ export default class CacheObject {
       this._fuseProjectsIndex = projectsIndex ? Fuse.parseIndex<JiraProject>(projectsIndex) : undefined;
     } catch {
       if (this._data?.projects?.value)
-        this._fuseProjectsIndex = Fuse.createIndex(fuseProjectIndexOptions.keys, this._data.projects.value);
+        this._fuseProjectsIndex = Fuse.createIndex(fuseProjectIndexOptions.keys, this._data?.projects?.value);
     }
   };
 

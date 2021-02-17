@@ -4,7 +4,13 @@ import sslRequest from '../ssl_request';
 import utils from '../utilities/utils';
 
 import config from '../config';
+import { client } from '../helpers/helpers';
 
+
+export const assignJ = async (ticket, assignee) => {
+  const assigneeUserId = await client.users.getAccountIdsForUsers({username: assignee }); // . getUser({username: assignee })
+  await client.issues.assignIssue({issueIdOrKey: ticket });
+};
 
 export default function assign() {
   const assign = {

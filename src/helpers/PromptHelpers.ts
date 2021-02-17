@@ -129,6 +129,7 @@ export const projectPrompt = async (currentAnswers: UserAnswersObject,  userConf
 
   // 'default' param doesn't work for list type prompts
   const question: QuestionCollection = {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     type: 'autocomplete',
     name: 'project',

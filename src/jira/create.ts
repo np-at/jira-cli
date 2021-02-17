@@ -88,7 +88,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
 
 
   const epics: SearchResult = await client.issueSearch.searchForIssuesUsingJqlGet({ jql: `project=${e['project']['id']} AND issueType = "Epic" AND status != "Done"` });
-  const defaultEpic = userConfigPrefs.cache['recent']?.['epic']?.['fields']?.['summary'] ?? undefined;
+  const defaultEpic = userConfigPrefs.cache?.['recent']?.['epic']?.['fields']?.['summary'];
   if (!e['parentTask'] && (await inquirer.prompt({
     name: 'epicChild',
     type: 'confirm',

@@ -11,7 +11,7 @@
 import commander from 'commander';
 import config from './config';
 import auth from './auth';
-import ls, { lsCommand } from './jira/ls';
+import ls, { addCommand_ls } from './jira/ls';
 import describe, { addDescribeCommand } from './jira/describe';
 import assign from './jira/assign';
 import fix from './jira/fix';
@@ -62,9 +62,8 @@ export interface jiraclCreateOptions {
 
 
   const program = new CommandWComplete().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
-  const cache = new CacheObject();
   program.version(pkg.version);
-  lsCommand(program, finalCb);
+  addCommand_ls(program, finalCb);
   program.command('_complete [cursorPos] [commandAst] [wordToComplete]', { hidden: true }).action(async (...args) => {
     const cursorPos = parseInt(args[0]);
     const wordToComplete = args[2];
