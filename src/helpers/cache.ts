@@ -46,6 +46,8 @@ interface CacheEntry<T> {
 }
 
 export default class CacheObject {
+
+  // TODO: implement incremental loading, saving
   get cacheLoc(): string {
     return cacheFilePath;
   }
@@ -55,7 +57,7 @@ export default class CacheObject {
   }
 
   set issues(issueResponses: IssueResponse[]) {
-    this._data.issues = { updated: Date.now(), value: issueResponses };
+    this.__data.issues = { updated: Date.now(), value: issueResponses };
   }
 
   get projects(): JiraProject[] {
@@ -63,7 +65,7 @@ export default class CacheObject {
   }
 
   set projects(projects: JiraProject[]) {
-    this._data.projects = { updated: Date.now(), value: projects };
+    this.__data.projects = { updated: Date.now(), value: projects };
   }
 
   get recent(): LastUsedEntry {
@@ -71,9 +73,16 @@ export default class CacheObject {
   }
 
   set recent(entry: LastUsedEntry) {
-    this._data.recent = { updated: Date.now(), value: entry };
+    this.__data['recent'] = { updated: Date.now(), value: entry };
+    this.flushCache().catch(reason => {
+      throw new Error(reason);
+    });
   }
 
+
+  private get _data() {
+    return this.__data ? this.__data : this._load();
+  }
 
   private __data?: CacheFileProps;
   private _fuseProjectsIndex?: Fuse.FuseIndex<JiraProject>;
@@ -90,12 +99,6 @@ export default class CacheObject {
     return new Fuse(this._data?.projects?.value, {}, this._fuseProjectsIndex);
   }
 
-  private get _data() {
-    if (this.__data)
-      return this.__data;
-    else
-      return this._load();
-  }
 
   constructor() {
     // load cache into memory on startup, add hook to flush results to file on stop
@@ -105,10 +108,21 @@ export default class CacheObject {
       const sub = cp.fork('refreshRunner', { detached: true, cwd: __dirname, stdio: ['ipc', out, err] });
       sub.unref();
       this._loadFuseIndices();
+      this._load();
     } catch (e) {
       console.error(e);
     }
+    process.on('beforeExit', this.flushCache);
 
+  }
+
+  async flushCache(...args): Promise<void> {
+    try {
+      if (this.__data)
+        await fs.promises.writeFile(cacheFilePath, JSON.stringify(this.__data), { encoding: 'utf-8' });
+    } catch (e) {
+      console.error('error while writing cache to disk', e);
+    }
   }
 
   private _loadFuseIndices = (): void => {
@@ -145,15 +159,19 @@ export default class CacheObject {
 
   private _load(): CacheFileProps {
     CacheObject._ensureCache();
-    this.__data = CacheObject._readCache();
+    this.__data = CacheObject._readCache() ?? {};
     return this.__data;
   }
 
 
   private static _readCache(): CacheFileProps {
     // return data if already loaded, if not, then load it
-    const cachestring: Buffer = readFileSync(cacheFilePath);
-    return JSON.parse(cachestring.toString('utf-8'));
+    try {
+      const cachestring: Buffer = readFileSync(cacheFilePath);
+      return JSON.parse(cachestring.toString('utf-8'));
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   // public async get(): Promise<CacheFileProps> {

@@ -60,9 +60,14 @@ export const getDefaultCreate = async (meta?): Promise<unknown> => {
 
 async function lsEntry(options) {
   const e = options as jiraclCreateOptions;
-  return await client.issueSearch.searchForIssuesUsingJqlGet({
-    jql: 'assignee=currentUser()', fields: ['*all'], maxResults: 500
-  });
+  try {
+    return await client.issueSearch.searchForIssuesUsingJqlGet({
+      jql: 'assignee=currentUser()', fields: ['*all'], maxResults: 500
+    });
+  } catch (err) {
+    console.error(e);
+    throw err;
+  }
   // return await client.issues.getIssue({ issueIdOrKey: e.issue });
 
 }
@@ -105,16 +110,16 @@ function displayIssues(issues: IssueResponse[], options?) {
     if (!x)
       return;
     newIssueList.push(issues.find(y => y.key === x));
-    const s = issues.filter(v => v.fields.parent?.key === x).sort().reverse();
+    const s = issues.filter(v => v.fields?.parent?.key === x).sort().reverse();
     newIssueList.push(...s);
     issues = issues.filter(v => (v.fields?.parent?.key !== x && v.key !== x));
   });
   newIssueList.push(...issues);
-  issues = newIssueList.filter(x => x.fields.status.name !== 'Done');
+  issues = newIssueList.filter(x => (x && x?.fields?.status?.name !== 'Done'));
   for (let i = 0; i < issues.length; i += 1) {
     let priority = issues[i].fields?.priority;
-    const summary = issues[i].fields.summary;
-    const status = issues[i].fields.status;
+    const summary = issues[i].fields?.summary;
+    const status = issues[i].fields?.status;
 
     if (!priority) {
       priority = {
@@ -126,12 +131,12 @@ function displayIssues(issues: IssueResponse[], options?) {
     //   summary = summary.substr(0, 47) + '...';
     // }
 
-    const fv = issues[i].fields.fixVersions?.map(elem => elem.name).join(',');
+    const fv = issues[i]?.fields?.fixVersions?.map(elem => elem.name).join(',');
 
     if (issues[i].fields?.issuetype?.name === 'Epic')
       // special EPIC coloring for EPICS
       table.push([chalk.redBright(issues[i]?.key), priority.name, summary, status.name, fv ?? 'n/a']);
-    else if (issues[i].fields?.parent)
+    else if (issues[i]?.fields?.parent)
       // indent children to indicate relationship
       table.push(['|-' + issues[i].key, priority.name, summary, status.name, fv ?? 'n/a']);
     else
