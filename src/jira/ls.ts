@@ -18,7 +18,7 @@ import { jiraclCreateOptions } from '../entrypoint';
 import inquirer from 'inquirer';
 
 
-export const addCommand_ls = (prog: commander.Command, extCallback: (err: any, results: any) => void): void => {
+export const addCommand_ls = (prog: commander.Command, extCallback: (err: string | Error, results: any) => void): void => {
   prog
     .command('ls')
     .description('List my issues')
@@ -28,15 +28,15 @@ export const addCommand_ls = (prog: commander.Command, extCallback: (err: any, r
     .action(async options => {
       // const defaultCreate = await getDefaultCreate();
       // return;
-      let err: Error, results: SearchResult;
+      let errr: Error, results: SearchResult;
       try {
         results = await lsEntry(options);
         displayIssues(results.issues);
       } catch (e) {
-        err = e;
+        errr = e;
       } finally {
         //invoke callback with results/andor error
-        extCallback(err, results);
+        extCallback(errr, results);
       }
 
     });
@@ -109,8 +109,16 @@ function displayIssues(issues: IssueResponse[], options?) {
   parents.forEach((x) => {
     if (!x)
       return;
+    // add parent first
     newIssueList.push(issues.find(y => y.key === x));
-    const s = issues.filter(v => v.fields?.parent?.key === x).sort().reverse();
+    // insert all issues that have parent, sort by creation date
+    // TODO: Make children sort behavior user configurable
+    const s = issues.filter(v => v.fields?.parent?.key === x).sort((a, b) => {
+      const aT: number = Date.parse(a.fields.created), bT: number = Date.parse(b.fields.created);
+      if (aT > bT) return 1;
+      else if (aT === bT) return 0;
+      else if (aT < bT) return -1;
+    });
     newIssueList.push(...s);
     issues = issues.filter(v => (v.fields?.parent?.key !== x && v.key !== x));
   });
@@ -131,14 +139,13 @@ function displayIssues(issues: IssueResponse[], options?) {
     //   summary = summary.substr(0, 47) + '...';
     // }
 
-    const fv = issues[i]?.fields?.fixVersions?.map(elem => elem.name).join(',');
 
     if (issues[i].fields?.issuetype?.name === 'Epic')
       // special EPIC coloring for EPICS
       table.push([chalk.redBright(issues[i]?.key), priority.name, summary, status.name]);
     else if (issues[i]?.fields?.parent)
       // indent children to indicate relationship
-      table.push(['|-' + issues[i].key, priority.name, summary, status.name]);
+      table.push(['|-' + chalk.blueBright(issues[i].key), priority.name, summary, status.name]);
     else
       //orphans
       table.push([issues[i].key, priority.name, summary, status.name]);

@@ -71,7 +71,7 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   //override preferences and merge with any explicitly defined cli parameters
   Object.assign(userConfigPrefs, options);
 
-  userConfigPrefs.cache = cache.recent;
+  userConfigPrefs['cache'] = { recent: cache.recent };
 
 
   const e: UserAnswersObject = {};
@@ -140,9 +140,9 @@ const assembleCreationParameters = async (options: jiraclCreateOptions) => {
   try {
     const response = await client.issues.createIssue({ fields: requestFieldsObject });
     console.debug(response);
-    cache.recent = { project: e.project, epic: e.epicParent };
-  } catch (e) {
-    console.error(e);
+    cache.recent = { project: e.project, epic: e.epicParent, issueType: e.issueType };
+  } catch (err) {
+    console.error(err);
   }
   // await dynamicPrompt('additional', e, userConfigPrefs);
 

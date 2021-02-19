@@ -14,6 +14,7 @@ import IFuseOptions = Fuse.IFuseOptions;
 export const cacheDirectory = path.join(settings.getConfigDirectory(), '.cache');
 
 export const HourMilli = 3600000;
+export const recentsCachePath = path.join(cacheDirectory, '.recents-cache.json');
 export const cacheFilePath = path.join(cacheDirectory, '.jira-cli-cache.json');
 export const fuseIssueIndexPath = path.join(cacheDirectory, '.issuesIndex.json');
 export const fuseProjectIndexPath = path.join(cacheDirectory, '.projectIndex.json');
@@ -69,24 +70,24 @@ export default class CacheObject {
   }
 
   get recent(): LastUsedEntry {
-    return this._data?.recent?.value;
+    this._recentsCache ??= JSON.parse(readFileSync(recentsCachePath, { encoding: 'utf-8' }));
+    return this._recentsCache.value;
   }
 
   set recent(entry: LastUsedEntry) {
-    this.__data['recent'] = { updated: Date.now(), value: entry };
-    this.flushCache().catch(reason => {
-      throw new Error(reason);
-    });
+    this._recentsCache = { updated: Date.now(), value: entry };
+    fs.writeFileSync(recentsCachePath, JSON.stringify(this._recentsCache), { encoding: 'utf-8' });
   }
 
 
-  private get _data() {
+  private get _data(): CacheFileProps {
     return this.__data ? this.__data : this._load();
   }
 
   private __data?: CacheFileProps;
   private _fuseProjectsIndex?: Fuse.FuseIndex<JiraProject>;
   private _fuseIssueIndex?: FuseIndex<IssueResponse>;
+  private _recentsCache?: CacheEntry<LastUsedEntry>;
 
   public get fuzzyIndexSearch(): Fuse<IssueResponse> | null {
     if (this._fuseIssueIndex && this._data?.issues?.value)
@@ -112,18 +113,18 @@ export default class CacheObject {
     } catch (e) {
       console.error(e);
     }
-    process.on('beforeExit', this.flushCache);
+    // process.on('beforeExit', this.flushCache);
 
   }
 
-  async flushCache(...args): Promise<void> {
-    try {
-      if (this.__data)
-        await fs.promises.writeFile(cacheFilePath, JSON.stringify(this.__data), { encoding: 'utf-8' });
-    } catch (e) {
-      console.error('error while writing cache to disk', e);
-    }
-  }
+  // async flushCache(...args): Promise<void> {
+  //   try {
+  //     if (this.__data)
+  //       await fs.promises.writeFile(cacheFilePath, JSON.stringify(this.__data), { encoding: 'utf-8' });
+  //   } catch (e) {
+  //     console.error('error while writing cache to disk', e);
+  //   }
+  // }
 
   private _loadFuseIndices = (): void => {
     try {
@@ -150,6 +151,9 @@ export default class CacheObject {
       utils.createDirectory(cacheDirectory);
       if (!utils.isFileExists(cacheFilePath)) {
         writeFileSync(cacheFilePath, '{}', 'utf-8');
+      }
+      if (!utils.isFileExists(recentsCachePath)) {
+        writeFileSync(recentsCachePath, '{}', { encoding: 'utf-8' });
       }
     } catch (e) {
       console.error('error', e);
