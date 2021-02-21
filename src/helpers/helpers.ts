@@ -2,6 +2,7 @@ import { jiraclCreateOptions } from '../entrypoint';
 import { Client } from 'jira.js';
 import config from '../config';
 import inquirer from 'inquirer';
+import auth from '../auth';
 
 export const parseProjIssue = (projIssue?: string): { project: string, issueId: string } => {
 
@@ -27,7 +28,7 @@ export const getMainTextColWidth = (otherColTotal: number) =>{
   return (process.stdout.columns || 200) - otherColTotal;
 };
 const _getClient = () => {
-  if (config && config.auth)
+  if (config && config?.auth?.url)
     return new Client({
       host: config.auth.url,
       authentication: {
@@ -40,7 +41,8 @@ const _getClient = () => {
         withCredentials: true
       }
     });
-  throw new Error();
+  else
+    auth.setup({});
 };
 export const client = _getClient();
 
@@ -52,7 +54,7 @@ export const fetchIssues = async (currentOptions: jiraclCreateOptions) => {
   //
   // });
   try {
-    return await client.issues.getCreateIssueMetadata(undefined);
+    return await client.issues.getCreateIssueMetadata();
 
   } catch (e) {
     console.error(e);

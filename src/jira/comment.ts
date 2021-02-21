@@ -42,11 +42,6 @@ interface AtlassianDocumentFormatRoot extends ADFNode {
 
 
 export const jiraComment = async (issue: string, comment: string): Promise<void> => {
-  const doc: AtlassianDocumentFormatRoot = {
-    version: 1, type: 'doc', content: [
-      { type: 'paragraph', content: [{ type: 'text', text: comment }] }
-    ]
-  };
   try {
     await client.issueComments.addComment({ issueIdOrKey: issue, body: comment });
   } catch (e) {

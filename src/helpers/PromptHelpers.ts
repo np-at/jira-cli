@@ -95,7 +95,7 @@ export const askIssueSummaryAndDetails = async (currentAnswers: UserAnswersObjec
       message: 'enter the issue summary',
       type: 'input',
       validate: (input: any, answers?) => {
-        return !(input.trim() === '');
+        return input.trim() !== '';
       }
     },
     {

@@ -69,17 +69,17 @@ export default {
 function ask(question: string, callback: (args) => void, password?: boolean): void {
 
   if (password) {
-    prompt({ type: 'password', message: question })
+    prompt({name: 'password', type: 'password', message: question })
       .then((answer) => {
-        if ((answer as string).length > 0) {
+        if ((answer.password as string).length > 0) {
           callback(answer);
         } else {
           this.ask(question, callback, true);
         }
       });
   } else {
-    prompt({ message: question }).then(function(answer) {
-      if ((answer as string).length > 0) {
+    prompt({name: 'answer', message: question }).then(function(answer) {
+      if ((answer.answer as string).length > 0) {
         callback(answer);
       } else {
         this.ask(question, callback);

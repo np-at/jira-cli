@@ -33,7 +33,6 @@ import { issuePickerCompletionAsync } from './helpers/CompletionHelpers';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pkg from '../package.json';
-import CacheObject from './helpers/cache';
 import { CommandWComplete } from './Extensions/CommandWComplete';
 
 export interface jiraclCreateOptions {
@@ -331,7 +330,7 @@ export interface jiraclCreateOptions {
         comment().show(issue);
       }
     });
-  await addDescribeCommand(program);
+  addDescribeCommand(program);
   // program
   //   .command('show <issue>')
   //   .description('Show info about an issue')
@@ -510,7 +509,10 @@ export interface jiraclCreateOptions {
     .action(function(options) {
       send.send(options);
     });
-  await program.parseAsync();
+  if (!config?.auth.url)
+    auth.setup({});
+  else
+    await program.parseAsync();
   if (!config.tree) {
     config.update('tree', program.genTree());
     config.save();
@@ -518,7 +520,7 @@ export interface jiraclCreateOptions {
 
   // console.log(tr);
   // process.exit(0);
-  if (program.args.length === 0) {
+  if (program.args?.length === 0) {
     console.log('\nYour first step is to run the config option.\n');
     program.help();
   }

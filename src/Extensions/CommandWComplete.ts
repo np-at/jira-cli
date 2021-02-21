@@ -1,10 +1,7 @@
 import commander from 'commander';
 import { CursorPos } from 'node:readline';
 import * as os from 'os';
-import { cursorTo } from 'readline';
-interface helpOpt {
-  [key:string]: string
-}
+
 export const completionSeparator = '|*|';
 
 interface retob {

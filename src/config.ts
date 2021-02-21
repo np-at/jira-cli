@@ -6,6 +6,7 @@ import utils from './utilities/utils';
 import * as initialConfig from './initial_config';
 import { URL } from 'url';
 import { RetobImpl } from './Extensions/CommandWComplete';
+import auth from './auth';
 
 export interface IConfig extends MetaDataObj{
   use_self_signed_certificate: boolean;
@@ -111,6 +112,8 @@ function _createConfig(configFileContent: string):  IConfig {
 
 function _load(): boolean {
   _data = _loadConfigFromFile(configFilePath, initialConfig);
+  if (!_data?.auth)
+    auth.setup({});
   return _isLoaded();
 }
 
