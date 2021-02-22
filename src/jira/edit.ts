@@ -7,6 +7,33 @@ import config from '../config';
 import { ask } from '../common';
 
 import { prompt } from 'inquirer';
+import commander from 'commander';
+import { client } from '../helpers/helpers';
+import { IssueResponse } from 'jira-connector/types/api';
+
+
+const addEditCommand = (prog: commander.Command) => {
+  prog
+    .command('edit <issue> [input]')
+    .description('edit issue.')
+    .action((issue, input) => {
+      if (input) {
+        // edit.editWithInputPutBody(issue, input, finalCb);
+      } else {
+        // edit.edit(issue, finalCb);
+      }
+    });
+};
+const editIssue = async (issueInput: string) => {
+  let issue;
+  try {
+    issue = await client.issues.getEditIssueMetadata({issueIdOrKey: issueInput});
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+
+};
 
 export default (() => {
   const editMeta = {

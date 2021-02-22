@@ -75,7 +75,7 @@ async function lsEntry(options) {
 function displayIssues(issues: IssueResponse[], options?) {
   const table = new Table({
     head: ['Key', 'Priority', 'Summary', 'Status'],
-    // colWidths: [13, 10, getMainTextColWidth(50),20],
+    colWidths: [13, 10, getMainTextColWidth(50),14],
 
     chars: {
       'top': '',
@@ -155,6 +155,7 @@ function displayIssues(issues: IssueResponse[], options?) {
   if (issues.length > 0) {
     //dont print if no_print is set
     if (!(options && options.no_print)) {
+      console.clear();
       console.log(table.toString());
     }
   } else {

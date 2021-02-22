@@ -8,7 +8,9 @@ import { URL } from 'url';
 import { RetobImpl } from './Extensions/CommandWComplete';
 import auth from './auth';
 
-export interface IConfig extends MetaDataObj{
+
+
+export interface IConfig {
   use_self_signed_certificate: boolean;
   auth: Auth;
   custom_alasql: Record<string, string>[];
@@ -19,21 +21,25 @@ export interface IConfig extends MetaDataObj{
   edit_meta: any;
   default_create: {
     __always_ask: {
-      fields: {[key:string]:string}
+      fields: { [key: string]: string }
     }
   };
   user_alias: any;
   authNew: any,
   cacheTimeoutThreshold?: number,
+  user_preferences?: MetaDataObj,
   tree?: RetobImpl
 }
+
 interface MetaDataObj {
-  [key:string]: unknown
+  [key: string]: unknown
 }
+
 interface M {
   key: string,
   value: unknown
 }
+
 export interface Auth {
   url?: string,
   user?: string,
@@ -55,11 +61,12 @@ function _getCreateParams() {
 
 
 }
+
 function _ensureConfig(): void {
   utils.createDirectory(configDir);
 }
 
-function _update(key:string, value:unknown): void {
+function _update(key: string, value: unknown): void {
   _data[key] = value;
 }
 
@@ -86,7 +93,7 @@ function formatToNewAuth(auth: Auth): Auth {
   return auth;
 }
 
-function _createConfig(configFileContent: string):  IConfig {
+function _createConfig(configFileContent: string): IConfig {
 
   const configObject = JSON.parse(stripJson(configFileContent));
   const config: IConfig = {
@@ -109,7 +116,6 @@ function _createConfig(configFileContent: string):  IConfig {
 
   return config;
 }
-
 function _load(): boolean {
   _data = _loadConfigFromFile(configFilePath, initialConfig);
   if (!_data?.auth)
@@ -125,10 +131,41 @@ function _save(): void {
   utils.saveToFile(configFilePath, JSON.stringify(_data, null, 2));
 }
 
-function _clear():void {
+function _clear(): void {
   utils.deleteFile(configFilePath);
   utils.deleteDirectory(configDir);
 }
+
+class ConfigClass implements IConfig {
+  get auth(): Auth {
+    return this._auth;
+  }
+
+  set auth(value: Auth) {
+    this._auth = value;
+  }
+
+  constructor(props) {
+    _ensureConfig();
+    _load();
+  }
+
+  ___data: IConfig;
+  use_self_signed_certificate: boolean;
+  private _auth: Auth;
+  custom_alasql: Record<string, string>[];
+  options: { available_issues_statuses: unknown[]; };
+  custom_jql: any;
+  edit_meta: any;
+  default_create: { __always_ask: { fields: { [key: string]: string; }; }; };
+  user_alias: any;
+  authNew: any;
+  cacheTimeoutThreshold?: number;
+  tree?: RetobImpl;
+
+
+}
+
 
 
 export default {
