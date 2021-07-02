@@ -11,7 +11,6 @@ import fs, { readFileSync } from 'fs';
 import { JiraProject } from './PromptHelpers';
 import { IssueResponse } from 'jira-connector/types/api';
 import { client } from './helpers';
-import settings from '../settings';
 import fuse from 'fuse.js';
 import config from '../config';
 
@@ -31,7 +30,6 @@ const initData = currentCache();
 
 const _flushToDisk = async (newData: CacheFileProps): Promise<void> => {
 
-  settings.getConfigDirectory();
   // get latest cache object in case it was updated since the refresh cycle was initiated
   const currentData = currentCache();
   Object.assign(currentData, newData);
@@ -42,7 +40,7 @@ const _flushToDisk = async (newData: CacheFileProps): Promise<void> => {
   const projectIndex = fuse.createIndex(fuseProjectIndexOptions.keys, currentData.projects.value);
   await fs.promises.writeFile(fuseProjectIndexPath, JSON.stringify(projectIndex.toJSON()));
 };
-export const refreshProjects = async (force = false): Promise<void> => {
+const refreshProjects = async (force = false): Promise<void> => {
   if (processLock() === true)
     return;
   else
@@ -56,27 +54,21 @@ export const refreshProjects = async (force = false): Promise<void> => {
         projects.push(...response);
       } catch (e) {
         console.error(e);
-        console.log(e);
       }
     }
     if (force || (Date.now() - (initData?.issues?.updated ?? 0)) >= CacheExpirationThreshold) {
       let index = 0;
       while (true) {
-        try {
-          const response = await client.issueSearch.searchForIssuesUsingJqlGet({
-            jql: 'Issue IN watchedIssues()',
-            startAt: index,
-            maxResults: 5000,
-            fields: ['*all']
-          });
-          if (response.issues && response.issues?.length > 0) {
-            index = response.startAt + response.issues.length;
-            issues.push(...response.issues);
-          } else
-            break;
-        } catch (e) {
-          console.error(e);
-          console.log(e);
+        const response = await client.issueSearch.searchForIssuesUsingJqlGet({
+          jql: 'Issue IN watchedIssues()',
+          startAt: index,
+          maxResults: 5000,
+          fields: ['*all']
+        });
+        if (response.issues && response.issues?.length > 0) {
+          index = response.startAt + response.issues.length;
+          issues.push(...response.issues);
+        } else {
           break;
         }
 
@@ -88,7 +80,6 @@ export const refreshProjects = async (force = false): Promise<void> => {
     }
   } catch (e) {
     console.error(e);
-    console.log(e);
   }
   processLock(false);
 
@@ -110,10 +101,8 @@ const processLock = (lock?: boolean): boolean => {
   }
   return false;
 };
-try {
-  refreshProjects(false).catch(reason => console.error(reason)).finally(() => console.timeEnd('rf_runner'));
-} catch (e) {
-  console.error(e);
-  console.log(e);
+
+refreshProjects(false).catch(reason => console.error(reason)).finally(() => {
+  console.timeEnd('rf_runner');
   processLock(false);
-}
+});

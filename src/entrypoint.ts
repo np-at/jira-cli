@@ -50,6 +50,7 @@ export interface jiraclCreateOptions {
 }
 
 (async () => {
+
   function finalCb(err, results?: any) {
     if (err) {
       console.log(...err.toString());
@@ -59,8 +60,7 @@ export interface jiraclCreateOptions {
     process.exit(0);
   }
 
-
-  const program = new CommandWComplete().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(true).allowExcessArguments(true);
+  const program = new CommandWComplete().enablePositionalOptions(true).storeOptionsAsProperties(false).allowUnknownOption(false).allowExcessArguments(true).passThroughOptions(true);
   program.version(pkg.version);
   addCommand_ls(program, finalCb);
   program.command('_complete [cursorPos] [commandAst] [wordToComplete]', { hidden: true }).action(async (...args) => {
@@ -511,8 +511,9 @@ export interface jiraclCreateOptions {
     });
   if (!config?.auth.url)
     auth.setup({});
-  else
+  else {
     await program.parseAsync();
+  }
   if (!config.tree) {
     config.update('tree', program.genTree());
     config.save();

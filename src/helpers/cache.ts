@@ -110,9 +110,11 @@ export default class CacheObject {
       sub.unref();
       this._loadFuseIndices();
       this._load();
+
     } catch (e) {
       console.error(e);
     }
+
     // process.on('beforeExit', this.flushCache);
 
   }
@@ -127,6 +129,7 @@ export default class CacheObject {
   // }
 
   private _loadFuseIndices = (): void => {
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const issuesIndex = require(fuseIssueIndexPath);
@@ -164,6 +167,7 @@ export default class CacheObject {
   private _load(): CacheFileProps {
     CacheObject._ensureCache();
     this.__data = CacheObject._readCache() ?? {};
+
     return this.__data;
   }
 

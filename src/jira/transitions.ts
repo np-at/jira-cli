@@ -22,16 +22,17 @@ export const startIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_start'
 export const stopIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_stop');
 export const doneIssue = (issue, cb) => transitionIssue(issue, cb, 'jira_done');
 
-const transitionIssue = async (issue, cb, transitionType: 'jira_start'|'jira_done'|'jira_stop'|'jira_invalid') => {
+const transitionIssue = async (issue, cb, transitionType: 'jira_start' | 'jira_done' | 'jira_stop' | 'jira_invalid') => {
   const startTransitionName = config.options[transitionType]['status'];
   const transitions: TransitionsResponseModel = await client.issues.getTransitions({
     issueIdOrKey: issue,
-    expand: 'transitions.fields'
+    expand: 'transitions, transitions.fields'
   });
   const newTransition = transitions.transitions.find(x => x.name.normalize() === startTransitionName.normalize());
-  if (newTransition.fields) {
-    new Error('NOT IMPLEMENTED');
+  const fields = Object.getOwnPropertyNames(newTransition.fields);
+  if (fields.length > 0) {
     console.error('NOT IMPLEMENTED');
+    throw new Error('NOT IMPLEMENTED');
   }
   try {
     const response = await client.issues.transitionIssue({ issueIdOrKey: issue, transition: { id: newTransition.id } });
